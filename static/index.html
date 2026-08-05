@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pasolite Lead Intelligence</title>
+<style>
+  :root {
+    --black: #161616;
+    --accent: #c20d0f;
+    --navy: #33326f;
+    --paper: #fbfaf8;
+    --ink: #121212;
+    --subink: #4d4d4d;
+    --low: #858585;
+    --rule: #dcdcdc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Helvetica, Arial, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  header {
+    background: var(--black);
+    color: #fff;
+    padding: 28px 20px 22px;
+    border-bottom: 3px solid var(--accent);
+  }
+  header .wordmark { color: var(--accent); font-weight: 700; font-size: 15px; letter-spacing: 1px; }
+  header .caption { color: #a3a3a3; font-size: 11px; letter-spacing: 2px; margin-left: 10px; }
+  header h1 { margin: 10px 0 4px; font-size: 26px; }
+  header p { margin: 0; color: #c9c9c9; font-size: 14px; max-width: 560px; }
+
+  main { max-width: 640px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 24px;
+  }
+  label { font-weight: 700; font-size: 13px; display: block; margin-bottom: 8px; }
+  input[type=text] {
+    width: 100%;
+    padding: 13px 14px;
+    font-size: 15px;
+    border: 1px solid #c8c8c8;
+    border-radius: 8px;
+    font-family: inherit;
+  }
+  input[type=text]:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+  button {
+    margin-top: 14px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 13px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  button:disabled { background: #cfa4a4; cursor: not-allowed; }
+  button:hover:not(:disabled) { background: #a30b0d; }
+
+  .hint { font-size: 12.5px; color: var(--low); margin-top: 10px; line-height: 1.5; }
+
+  .status { display: none; margin-top: 16px; font-size: 13.5px; color: var(--subink); }
+  .status.active { display: flex; align-items: center; gap: 10px; }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2.5px solid #e2e2e2;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .result { display: none; }
+  .result.active { display: block; }
+  .result h3 { margin: 0 0 6px; font-size: 17px; }
+  .result .fit { color: var(--accent); font-weight: 700; font-size: 12.5px; text-transform: uppercase; }
+  .btn-row { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-secondary {
+    background: var(--navy); color: #fff; text-decoration: none;
+    padding: 11px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 700;
+    display: inline-block;
+  }
+  .wa-box {
+    margin-top: 16px;
+    background: #f6f5f2;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 13.5px;
+    color: var(--subink);
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+  .error { display: none; margin-top: 14px; color: var(--accent); font-size: 13.5px; }
+
+  h2.section { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--low); margin: 0 0 14px; }
+  .lead-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--rule); font-size: 14px;
+  }
+  .lead-row:last-child { border-bottom: none; }
+  .lead-row .name { font-weight: 700; }
+  .lead-row .meta { color: var(--low); font-size: 12.5px; }
+  .lead-row a { color: var(--navy); text-decoration: none; font-weight: 700; font-size: 13px; }
+  .badge { font-size: 10.5px; padding: 3px 8px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
+  .badge.done { background: #e6f4ea; color: #1e7a34; }
+  .badge.pending { background: #eee; color: #777; }
+  .badge.error { background: #fbe3e3; color: var(--accent); }
+  .empty { color: var(--low); font-size: 13.5px; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="wordmark">PASOLITE</span><span class="caption">LEAD INTELLIGENCE</span>
+  <h1>Research a lead, get a battlecard</h1>
+  <p>Paste a website, a Google Maps link, or a company name below. It researches the account across multiple sources and hands back a one-page PDF plus a WhatsApp-ready summary.</p>
+</header>
+
+<main>
+  <div class="card">
+    <label for="lead-input">Website, Maps link, or company name</label>
+    <input type="text" id="lead-input" placeholder="e.g. khosla-associates.com, or a Maps pin, or just the firm's name">
+    <button id="generate-btn" onclick="generate()">Generate battlecard</button>
+    <div class="hint">This takes 30 to 90 seconds. This is genuinely researching the account, not just reading the link you paste.</div>
+
+    <div class="status" id="status"><div class="spinner"></div><span>Researching and building the card…</span></div>
+    <div class="error" id="error"></div>
+
+    <div class="result" id="result">
+      <h3 id="result-name"></h3>
+      <div class="btn-row">
+        <a class="btn-secondary" id="pdf-link" href="#" target="_blank">Download PDF</a>
+      </div>
+      <div class="wa-box" id="wa-summary"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="section">Past leads</h2>
+    <div id="lead-list"><div class="empty">Nothing generated yet.</div></div>
+  </div>
+</main>
+
+<script>
+async function loadLeads() {
+  const res = await fetch('/api/leads');
+  const leads = await res.json();
+  const el = document.getElementById('lead-list');
+  if (!leads.length) { el.innerHTML = '<div class="empty">Nothing generated yet.</div>'; return; }
+  el.innerHTML = leads.map(l => {
+    const date = new Date(l.created_at * 1000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    const badge = l.status === 'done'
+      ? '<span class="badge done">Done</span>'
+      : l.status === 'error'
+        ? '<span class="badge error">Error</span>'
+        : '<span class="badge pending">Pending</span>';
+    const link = l.status === 'done' ? `<a href="/pdfs/${l.id}.pdf" target="_blank">Open PDF</a>` : '';
+    return `<div class="lead-row">
+      <div>
+        <div class="name">${l.company_name || l.input_text}</div>
+        <div class="meta">${date} &nbsp;•&nbsp; ${l.input_text}</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">${badge}${link}</div>
+    </div>`;
+  }).join('');
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function generate() {
+  const input = document.getElementById('lead-input').value.trim();
+  const btn = document.getElementById('generate-btn');
+  const status = document.getElementById('status');
+  const statusText = status.querySelector('span');
+  const error = document.getElementById('error');
+  const result = document.getElementById('result');
+
+  if (!input) { alert('Paste a website, Maps link, or company name first.'); return; }
+
+  btn.disabled = true;
+  status.classList.add('active');
+  statusText.textContent = 'Researching and building the card…';
+  error.style.display = 'none';
+  result.classList.remove('active');
+
+  try {
+    // This returns almost instantly - it only queues the work, it doesn't
+    // wait for the research to finish. That's deliberate: a single request
+    // held open through both research calls can run past what most free
+    // hosts allow, which shows up as a bare "Failed to fetch" with no
+    // detail. Polling avoids ever holding one request open that long.
+    const createRes = await fetch('/api/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input_text: input }),
+    });
+    const created = await createRes.json();
+    if (!createRes.ok) throw new Error(created.detail || 'Could not start research.');
+
+    const leadId = created.id;
+    const maxAttempts = 60; // ~3 minutes at 3s apart - generous for a cold-started host
+    let data = null;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await sleep(3000);
+      const pollRes = await fetch(`/api/leads/${leadId}`);
+      if (!pollRes.ok) throw new Error('Lost track of this lead while researching it.');
+      const polled = await pollRes.json();
+
+      if (polled.status === 'done') { data = polled; break; }
+      if (polled.status === 'error') throw new Error(polled.error || 'Research failed.');
+
+      if (attempt > 5) {
+        statusText.textContent = 'Still researching, this one is taking a little longer…';
+      }
+    }
+
+    if (!data) throw new Error('This is taking unusually long. Check back in "Past leads" shortly, or try again.');
+
+    document.getElementById('result-name').textContent = data.company_name;
+    document.getElementById('pdf-link').href = data.pdf_url;
+    document.getElementById('wa-summary').textContent = data.whatsapp_summary || '';
+    result.classList.add('active');
+    loadLeads();
+  } catch (e) {
+    error.textContent = e.message;
+    error.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    status.classList.remove('active');
+  }
+}
+
+loadLeads();
+</script>
+
+</body>
+</html>
