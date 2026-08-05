@@ -189,22 +189,22 @@ BATTLECARD_SCHEMA = {
     ],
 }
 
-# Now that billing is enabled on the Google Cloud project, gemini-2.5-flash-lite
-# is the cheapest viable option AND the one with the largest paid-tier
-# grounding allowance, per Google's own pricing page (checked August 2026):
-#   - Input/output: $0.10 / $0.40 per million tokens - the lowest of any
-#     current Gemini model, tied only with gemini-2.0-flash.
-#   - Google Search grounding: 1,500 free grounded requests per DAY on the
-#     paid tier, then $35 per 1,000 - a much larger free allowance than the
-#     newer 3.x line (5,000 per MONTH, then $14 per 1,000). At this app's
-#     volume (a handful of leads a day across the team), grounding cost
-#     should be $0 in practice.
-#   - The earlier "no longer available to new users" 404 was almost
-#     certainly Google gating this model behind having a billing account
-#     attached, not a real retirement - it's still fully priced and listed
-#     as current on Google's own pricing page.
+# IMPORTANT, learned the hard way: gemini-2.5-flash-lite and gemini-2.5-flash
+# both 404 with "no longer available to new users" on this project - and
+# that error persists even with billing enabled, so it's a categorical
+# block on new projects using the 2.5 line specifically, NOT a quota or
+# billing problem. Do not switch back to either of those and assume
+# billing fixes it - it doesn't, confirmed by direct testing.
+#
+# gemini-2.0-flash is different: before billing, it failed with a 429
+# quota error ("limit: 0" on the free tier), not the 404 block above - a
+# quota problem is exactly what enabling billing resolves. It's also
+# priced identically to gemini-2.5-flash-lite ($0.10 / $0.40 per million
+# tokens) with a large paid-tier grounding allowance (1,500 free grounded
+# requests/day, then $35/1,000), per Google's pricing page. This is the
+# cheapest model actually available to this project.
 # If cost or availability assumptions change, re-check
 # https://ai.google.dev/gemini-api/docs/pricing before switching models -
 # don't guess from memory, this exact page has moved more than once this
 # year.
-MODEL = "gemini-2.5-flash-lite"
+MODEL = "gemini-2.0-flash"
