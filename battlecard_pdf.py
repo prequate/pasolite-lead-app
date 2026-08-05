@@ -81,6 +81,23 @@ def tracked(text, sep=" "):
     return sep.join(list(text))
 
 
+def clip_text(text, font, size, max_width):
+    """Truncates text with an ellipsis if it's wider than max_width, so a
+    single unexpectedly long value - a verbose model output, an unusually
+    long project or company name - can never overlap a neighboring chip
+    or run past the page edge. A no-op for text that already fits, so
+    correctly-shaped short labels (the normal case) render exactly as
+    before."""
+    if not text:
+        return text
+    if stringWidth(text, font, size) <= max_width:
+        return text
+    ellipsis = "…"
+    while text and stringWidth(text + ellipsis, font, size) > max_width:
+        text = text[:-1]
+    return (text.rstrip() + ellipsis) if text else ellipsis
+
+
 def wrap(c, text, font, size, max_width):
     c.setFont(font, size)
     words = text.split()
@@ -133,14 +150,20 @@ def sub_label(c, text, x, y, color=NAVY):
     c.drawString(x, y, tracked(text))
 
 
-def chip(c, text, x, y, fill, text_color, font_size=7.3, pad_x=7, h=None, align="left"):
+def chip(c, text, x, y, fill, text_color, font_size=7.3, pad_x=7, h=None,
+         align="left", max_width=150):
     """A soft, rounded pill — simple but a little more fun than a plain
     label or a hard rectangle. Used for priority, category, and
-    positioning tags, always in a light pastel tint, never a solid block."""
+    positioning tags, always in a light pastel tint, never a solid block.
+    max_width caps how wide the pill can ever grow - tag vocabulary
+    (High/Medium/Low, Pasolite's category names) is always short, so this
+    is purely a safety net against a stray long value, not something
+    correctly-shaped tags will ever hit."""
     if h is None:
         h = font_size + 6.6
     label = text.upper()
     c.setFont(FONT_B, font_size)
+    label = clip_text(label, FONT_B, font_size, max_width - pad_x * 2)
     w = stringWidth(label, FONT_B, font_size) + pad_x * 2
     x0 = x - w if align == "right" else x
     c.setFillColorRGB(*fill)
@@ -167,11 +190,18 @@ def priority_chip(c, right_edge, y_top, priority):
 def fit_badge(c, right_edge, top_y, label):
     """Solid red pill, plain white text, sitting on the black header panel —
     the one accent-color "stamp" inside an otherwise black-and-white band,
-    rounded into a full pill for a friendlier finish."""
+    rounded into a full pill for a friendlier finish. overall_fit is meant
+    to be a short two-or-three-word label ("Strong Fit"); max_w below caps
+    how wide this pill can ever grow, so if a model ever sends a full
+    sentence here instead, it clips to something that still fits the
+    header row rather than overlapping the wordmark or running off the
+    page."""
     label = label.upper()
     c.setFont(FONT_B, 9)
-    text_w = stringWidth(label, FONT_B, 9)
     pad_x = 12
+    max_w = 230
+    label = clip_text(label, FONT_B, 9, max_w - pad_x * 2)
+    text_w = stringWidth(label, FONT_B, 9)
     w = pad_x * 2 + text_w
     h = 8.5 * mm
     x = right_edge - w
@@ -217,7 +247,9 @@ def build(data, out_path):
 
     c.setFillColorRGB(*HEADER_TEXT)
     c.setFont(FONT_B, 25)
-    c.drawString(MARGIN, PAGE_H - 21 * mm, data.get("company_name", "Unnamed lead"))
+    company_name = data.get("company_name", "Unnamed lead")
+    company_name = clip_text(company_name, FONT_B, 25, PAGE_W - 2 * MARGIN)
+    c.drawString(MARGIN, PAGE_H - 21 * mm, company_name)
 
     c.setFont(FONT, 10)
     one_liner = data.get("one_liner", "")
@@ -229,7 +261,8 @@ def build(data, out_path):
     if facts:
         c.setFont(FONT, 8.5)
         c.setFillColorRGB(*HEADER_LOW)
-        c.drawString(MARGIN, y_facts, "   /   ".join(facts))
+        facts_line = clip_text("   /   ".join(facts), FONT, 8.5, PAGE_W - 2 * MARGIN)
+        c.drawString(MARGIN, y_facts, facts_line)
 
     kc = data.get("key_contact", {})
     if kc and kc.get("name"):
@@ -238,7 +271,8 @@ def build(data, out_path):
             line += f", {kc['role']}"
         c.setFont(FONT_B, 8.3)
         c.setFillColorRGB(*HEADER_TEXT)
-        c.drawString(MARGIN, y_facts - 5.5 * mm, line)
+        c.drawString(MARGIN, y_facts - 5.5 * mm,
+                      clip_text(line, FONT_B, 8.3, PAGE_W - 2 * MARGIN))
 
     hline(c, 0, PAGE_W, PAGE_H - HEADER_H, color=ACCENT, width=1.6)
     y = PAGE_H - HEADER_H - 9 * mm
@@ -260,7 +294,17 @@ def build(data, out_path):
         reason = item.get("reason", "")
         c.setFont(FONT_B, 9.7)
         c.setFillColorRGB(*BLACK)
-        c.drawString(left_x, ly, name)
+        # The name shares its line with the priority chip on the right, so
+        # its available width has to account for the chip - otherwise a
+        # longer-than-expected name (this is meant to be a short 2-4 word
+        # category name) runs straight into or past the chip.
+        chip_w = 0
+        p = (priority or "").strip().lower()
+        if p:
+            chip_label = clip_text(priority.upper(), FONT_B, 7.3, 150 - 14)
+            chip_w = stringWidth(chip_label, FONT_B, 7.3) + 14
+        name_max_w = col_w - (chip_w + 6 if chip_w else 0)
+        c.drawString(left_x, ly, clip_text(name, FONT_B, 9.7, name_max_w))
         priority_chip(c, left_x + col_w, ly + 1, priority)
         ly -= 6.8 * mm
         ly = draw_wrapped(c, reason, left_x, ly, FONT, 8.3, col_w, 10.2,
@@ -278,7 +322,12 @@ def build(data, out_path):
             note = p.get("note", "")
             c.setFont(FONT_B, 9)
             c.setFillColorRGB(*BLACK)
-            c.drawString(left_x, ly, name)
+            cat_chip_w = 0
+            if category:
+                cat_label = clip_text(category.upper(), FONT_B, 6.6, 150 - 14)
+                cat_chip_w = stringWidth(cat_label, FONT_B, 6.6) + 14
+            proj_name_max_w = col_w - (cat_chip_w + 6 if cat_chip_w else 0)
+            c.drawString(left_x, ly, clip_text(name, FONT_B, 9, proj_name_max_w))
             if category:
                 chip(c, category, left_x + col_w, ly - 4.9, NAVY_TINT, NAVY,
                      font_size=6.6, align="right")
@@ -322,7 +371,7 @@ def build(data, out_path):
             rng = t.get("range", "")
             c.setFont(FONT_B, 8.6)
             c.setFillColorRGB(*BLACK)
-            c.drawString(right_x, ry, segment)
+            c.drawString(right_x, ry, clip_text(segment, FONT_B, 8.6, col_w))
             ry -= 4.4 * mm
             ry = draw_wrapped(c, rng, right_x, ry, FONT, 8, col_w, 9.8,
                                color=SUBINK, max_lines=2)

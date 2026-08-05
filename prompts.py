@@ -85,8 +85,23 @@ Writing rules, followed exactly:
   read as an estimate in the text itself, e.g. "Est. Rs. 15-40L lighting \
   scope per villa, based on project scale and finish level [ESTIMATED]" - \
   write "Rs." not the rupee symbol, which doesn't render in the PDF font.
+- overall_fit is a short badge label only, two or three words, e.g. \
+  "Strong Fit", "Moderate Fit", "Weak Fit". It renders inside a small red \
+  pill at the top of the card, so it must never be a sentence, a \
+  clause, or a description of who the fit is for - that reasoning belongs \
+  in one_liner or the product_fits reasons, not here.
 - Judgment calls (overall_fit, strengths, weaknesses, price_positioning) \
   are plain-language points, never numeric scores.
+- product_fits[].name is ONLY the short Pasolite category name itself \
+  (architectural downlights, linear profiles, magnetic track, spotlights, \
+  wall washers, facade lighting, landscape lighting, bollards, decorative \
+  and pendant lighting, smart/DALI/DMX/human-centric lighting, or a close \
+  two-to-four-word variant of one of these) - never a longer descriptive \
+  phrase and never anything in parentheses. It renders on a single line \
+  next to a priority chip, so a long name will visually collide with that \
+  chip. Any technical detail (deep-recessed, low glare/UGR, specific CRI \
+  or color temperature, DALI/DMX capability, and so on) belongs in \
+  `reason`, not folded into `name`.
 - product_fits: only the 4-6 categories with genuine evidence behind them, \
   ordered highest priority first, each reason tying it to actual observed \
   work.
