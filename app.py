@@ -30,6 +30,7 @@ from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
+from google.genai import types
 from pydantic import BaseModel
 
 from battlecard_pdf import build as build_pdf
@@ -197,3 +198,44 @@ def diagnostics():
         return {"ok": True, "count": len(models), "models": models}
     except Exception as e:
         return {"ok": False, "stage": "models.list", "error": str(e)}
+
+
+@app.get("/api/diag/live")
+def diagnostics_live():
+    """
+    /api/diag only asks Google which models this account's key is
+    registered to see - and we learned the hard way that this doesn't
+    match which models can actually be called: several models Google
+    lists as supporting generateContent still 404 at call time for this
+    account. This route actually calls each entry in
+    prompts.CANDIDATE_MODELS, with the same Google Search grounding
+    config the real research call uses, and reports which ones genuinely
+    work right now. Each call is one short prompt, negligible cost.
+    """
+    from prompts import CANDIDATE_MODELS
+    from research import get_client
+
+    try:
+        client = get_client()
+    except Exception as e:
+        return {"ok": False, "stage": "get_client", "error": str(e)}
+
+    results = []
+    for model in CANDIDATE_MODELS:
+        try:
+            resp = client.models.generate_content(
+                model=model,
+                contents="Reply with exactly one word: OK.",
+                config=types.GenerateContentConfig(
+                    tools=[types.Tool(google_search=types.GoogleSearch())]
+                ),
+            )
+            results.append({
+                "model": model,
+                "works": True,
+                "reply": (resp.text or "")[:50],
+            })
+        except Exception as e:
+            results.append({"model": model, "works": False, "error": str(e)[:300]})
+
+    return {"ok": True, "results": results}

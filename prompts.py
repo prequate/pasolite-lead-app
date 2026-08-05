@@ -189,22 +189,45 @@ BATTLECARD_SCHEMA = {
     ],
 }
 
-# IMPORTANT, learned the hard way: gemini-2.5-flash-lite and gemini-2.5-flash
-# both 404 with "no longer available to new users" on this project - and
-# that error persists even with billing enabled, so it's a categorical
-# block on new projects using the 2.5 line specifically, NOT a quota or
-# billing problem. Do not switch back to either of those and assume
-# billing fixes it - it doesn't, confirmed by direct testing.
+# IMPORTANT - read this before ever touching a model name by hand again.
 #
-# gemini-2.0-flash is different: before billing, it failed with a 429
-# quota error ("limit: 0" on the free tier), not the 404 block above - a
-# quota problem is exactly what enabling billing resolves. It's also
-# priced identically to gemini-2.5-flash-lite ($0.10 / $0.40 per million
-# tokens) with a large paid-tier grounding allowance (1,500 free grounded
-# requests/day, then $35/1,000), per Google's pricing page. This is the
-# cheapest model actually available to this project.
-# If cost or availability assumptions change, re-check
-# https://ai.google.dev/gemini-api/docs/pricing before switching models -
-# don't guess from memory, this exact page has moved more than once this
-# year.
-MODEL = "gemini-2.0-flash"
+# We spent a long stretch guessing model names one at a time
+# (gemini-2.5-flash-lite, then gemini-2.5-flash, then gemini-2.0-flash),
+# and each one eventually 404'd even though Google's own "list models"
+# endpoint reports all of them as supporting generateContent on this
+# account. That mismatch is the real lesson: what Google's API says a
+# project CAN see and what it will actually let you call right now are two
+# different things, and that gap has moved more than once during this
+# build without notice.
+#
+# So instead of pinning to one model name, research.py now tries a list of
+# candidates in order and automatically moves to the next one if a model
+# comes back "not found" / "no longer available" - the exact error text
+# Google has been changing. Whichever one actually works gets cached for
+# the rest of that server's uptime, so this costs nothing after the first
+# request.
+#
+# gemini-flash-latest and gemini-flash-lite-latest are Google's own
+# "floating" aliases - they always point at whatever Google currently
+# considers its current flash model, specifically so callers don't have to
+# keep re-pinning a dated model name by hand. They're listed first for
+# that reason. The dated names after them are kept as a safety net in case
+# an alias itself is ever unavailable on a given account.
+#
+# If every candidate below ever fails at once, the error message from the
+# app will say so explicitly (it lists which model was tried last) -
+# that's the moment to open https://ai.google.dev/gemini-api/docs/models
+# and https://ai.google.dev/gemini-api/docs/pricing for whatever Google
+# currently recommends, and add it to the front of this list. Don't
+# replace the whole list with a single new guess again.
+CANDIDATE_MODELS = [
+    "gemini-flash-latest",
+    "gemini-flash-lite-latest",
+    "gemini-2.0-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+]
+
+# Kept for anything that still wants a single display name (e.g. logging).
+# Not used to pick which model is actually called - see CANDIDATE_MODELS.
+MODEL = CANDIDATE_MODELS[0]
