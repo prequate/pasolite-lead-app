@@ -167,3 +167,33 @@ def get_pdf(lead_id: int):
     if not path.exists():
         raise HTTPException(404, "PDF not found.")
     return FileResponse(path, media_type="application/pdf", filename=f"{lead_id}.pdf")
+
+
+@app.get("/api/diag")
+def diagnostics():
+    """
+    Temporary diagnostic route. Google's model lineup and free/paid access
+    rules have shifted several times during this build, and guessing a
+    model name from documentation alone has been wrong more than once.
+    This asks the Gemini API directly, using this project's own key,
+    which models it currently allows and what each one supports - real
+    ground truth for this account instead of another guess. Safe to
+    delete this route once research.py is confirmed working; it exposes
+    only model names, no key or lead data.
+    """
+    from research import get_client
+
+    try:
+        client = get_client()
+    except Exception as e:
+        return {"ok": False, "stage": "get_client", "error": str(e)}
+
+    try:
+        models = []
+        for m in client.models.list():
+            actions = list(getattr(m, "supported_actions", None) or [])
+            if "generateContent" in actions:
+                models.append({"name": m.name, "supported_actions": actions})
+        return {"ok": True, "count": len(models), "models": models}
+    except Exception as e:
+        return {"ok": False, "stage": "models.list", "error": str(e)}
