@@ -189,17 +189,22 @@ BATTLECARD_SCHEMA = {
     ],
 }
 
-# Google is actively (and inconsistently) restricting its 2.5 model line
-# for brand-new API keys as of August 2026 - both gemini-2.5-flash-lite and
-# gemini-2.5-flash are confirmed blocked for new users on this project's
-# key. gemini-2.0-flash is the last model that still lists free Google
-# Search grounding on the free tier (every 3.x model dropped free search
-# entirely, charging for it even on otherwise-free-tier accounts) - and
-# it's a different generation number than the "2.5 models" Google's own
-# restriction announcement named, so it may not be affected the same way.
-# If this ALSO 404s as "no longer available to new users," free grounded
-# research isn't available to this API key at all right now - see
-# DEPLOY.md for what to do next (billing vs. the manual-entry version).
-# Check https://ai.google.dev/gemini-api/docs/pricing for the current
-# state of the "Grounding with Google Search" free tier column.
-MODEL = "gemini-2.0-flash"
+# Now that billing is enabled on the Google Cloud project, gemini-2.5-flash-lite
+# is the cheapest viable option AND the one with the largest paid-tier
+# grounding allowance, per Google's own pricing page (checked August 2026):
+#   - Input/output: $0.10 / $0.40 per million tokens - the lowest of any
+#     current Gemini model, tied only with gemini-2.0-flash.
+#   - Google Search grounding: 1,500 free grounded requests per DAY on the
+#     paid tier, then $35 per 1,000 - a much larger free allowance than the
+#     newer 3.x line (5,000 per MONTH, then $14 per 1,000). At this app's
+#     volume (a handful of leads a day across the team), grounding cost
+#     should be $0 in practice.
+#   - The earlier "no longer available to new users" 404 was almost
+#     certainly Google gating this model behind having a billing account
+#     attached, not a real retirement - it's still fully priced and listed
+#     as current on Google's own pricing page.
+# If cost or availability assumptions change, re-check
+# https://ai.google.dev/gemini-api/docs/pricing before switching models -
+# don't guess from memory, this exact page has moved more than once this
+# year.
+MODEL = "gemini-2.5-flash-lite"
