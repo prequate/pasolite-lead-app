@@ -190,13 +190,16 @@ BATTLECARD_SCHEMA = {
 }
 
 # Google is actively (and inconsistently) restricting its 2.5 model line
-# for brand-new API keys as of August 2026 - gemini-2.5-flash-lite is the
-# one confirmed blocked so far for new users. Free Google Search grounding
-# currently only exists on the 2.5 line (gemini-2.5-flash,
-# gemini-2.5-flash-lite, gemini-2.0-flash) - every 3.x model dropped free
-# search entirely. If this model also 404s with "no longer available to
-# new users," try "gemini-2.0-flash" next, in that order, before
-# concluding that free grounded research isn't available to this API key
-# at all. Check https://ai.google.dev/gemini-api/docs/pricing for the
-# current state of the "Grounding with Google Search" free tier column.
-MODEL = "gemini-2.5-flash"
+# for brand-new API keys as of August 2026 - both gemini-2.5-flash-lite and
+# gemini-2.5-flash are confirmed blocked for new users on this project's
+# key. gemini-2.0-flash is the last model that still lists free Google
+# Search grounding on the free tier (every 3.x model dropped free search
+# entirely, charging for it even on otherwise-free-tier accounts) - and
+# it's a different generation number than the "2.5 models" Google's own
+# restriction announcement named, so it may not be affected the same way.
+# If this ALSO 404s as "no longer available to new users," free grounded
+# research isn't available to this API key at all right now - see
+# DEPLOY.md for what to do next (billing vs. the manual-entry version).
+# Check https://ai.google.dev/gemini-api/docs/pricing for the current
+# state of the "Grounding with Google Search" free tier column.
+MODEL = "gemini-2.0-flash"
