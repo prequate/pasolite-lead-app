@@ -222,22 +222,46 @@ BATTLECARD_SCHEMA = {
 # the rest of that server's uptime, so this costs nothing after the first
 # request.
 #
-# gemini-flash-latest and gemini-flash-lite-latest are Google's own
-# "floating" aliases - they always point at whatever Google currently
-# considers its current flash model, specifically so callers don't have to
-# keep re-pinning a dated model name by hand. They're listed first for
-# that reason. The dated names after them are kept as a safety net in case
-# an alias itself is ever unavailable on a given account.
+# COST ORDERING - updated from real production logs, not just documentation.
+#
+# We originally put gemini-2.0-flash and gemini-2.5-flash-lite first because
+# they're the cheapest per token ($0.10/$0.40 per million vs gemini-2.5-flash's
+# $0.30/$2.50 [CATEGORY RESEARCH, NOT CLIENT-CONFIRMED - re-check
+# ai.google.dev/gemini-api/docs/pricing before treating as final]). Google
+# Search grounding itself (1,500 free grounded requests/day, then $35/1,000)
+# costs the same regardless of which model makes the call, so model choice
+# only ever moves the token bill, not the grounding bill.
+#
+# But Render's logs (checked directly, not guessed) show gemini-2.0-flash and
+# gemini-2.5-flash-lite both failing INSTANTLY on this account with no retry
+# attempt logged at all - meaning they hit the permanent "not available" 404,
+# not a transient error. They are a dead end for this account right now,
+# regardless of how cheap they'd be if they worked. The two "-latest"
+# aliases are the only candidates actually confirmed to succeed in
+# production. gemini-flash-lite-latest goes first since it's the lite-tier
+# alias and almost certainly cheaper than gemini-flash-latest (the flagship
+# alias) - though neither alias's price is listed by name on Google's
+# pricing page, so this is a reasonable inference, not a confirmed rate;
+# check the account's real "Spend" page if the exact split ever matters.
+# gemini-2.0-flash and gemini-2.5-flash-lite are kept in the list anyway
+# since they cost nothing to fail fast on and may start working again if
+# Google lifts whatever block is on them. Full-price gemini-2.5-flash stays
+# last resort.
+#
+# Whichever model actually succeeds gets cached in research.py for the
+# rest of that server's uptime, so re-ordering this list costs nothing
+# extra - it only changes which model wins on a cold start.
 #
 # If every candidate below ever fails at once, the error message from the
 # app will say so explicitly (it lists which model was tried last) -
 # that's the moment to open https://ai.google.dev/gemini-api/docs/models
 # and https://ai.google.dev/gemini-api/docs/pricing for whatever Google
 # currently recommends, and add it to the front of this list. Don't
-# replace the whole list with a single new guess again.
+# replace the whole list with a single new guess again - check the logs
+# first, the way this update was made.
 CANDIDATE_MODELS = [
-    "gemini-flash-latest",
     "gemini-flash-lite-latest",
+    "gemini-flash-latest",
     "gemini-2.0-flash",
     "gemini-2.5-flash-lite",
     "gemini-2.5-flash",
