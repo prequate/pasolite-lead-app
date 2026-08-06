@@ -239,3 +239,78 @@ def diagnostics_live():
             results.append({"model": model, "works": False, "error": str(e)[:300]})
 
     return {"ok": True, "results": results}
+
+
+@app.get("/api/diag/gemma")
+def diagnostics_gemma():
+    """
+    One-off check, not wired into the app's real fallback list yet. Gemma
+    models on this account show up as generateContent-capable and Google's
+    own docs say Gemma supports Google Search grounding, which would make
+    it a genuinely cheaper option if true - but its pricing isn't listed
+    on Google's pricing page under these names, and it's undocumented
+    whether it honors a forced JSON response_schema, which the battlecard
+    structuring step depends on completely. Rather than guess and risk
+    silently breaking that step for savings that might not even be real,
+    this tests both things directly: a grounded prompt (like the research
+    call) and a schema-forced prompt (like the structuring call), against
+    both Gemma models, and reports pass/fail with the actual error text.
+    Only promote a model from here into prompts.CANDIDATE_MODELS once both
+    checks come back working.
+    """
+    from research import get_client
+
+    GEMMA_CANDIDATES = ["gemma-4-31b-it", "gemma-4-26b-a4b-it"]
+    TEST_SCHEMA = {
+        "type": "object",
+        "properties": {"answer": {"type": "string"}},
+        "required": ["answer"],
+    }
+
+    try:
+        client = get_client()
+    except Exception as e:
+        return {"ok": False, "stage": "get_client", "error": str(e)}
+
+    results = []
+    for model in GEMMA_CANDIDATES:
+        entry = {"model": model}
+
+        # Check 1: does grounding work at all on this model.
+        try:
+            resp = client.models.generate_content(
+                model=model,
+                contents="What is today's date? Reply in one short sentence.",
+                config=types.GenerateContentConfig(
+                    tools=[types.Tool(google_search=types.GoogleSearch())]
+                ),
+            )
+            entry["grounding_works"] = True
+            entry["grounding_reply"] = (resp.text or "")[:80]
+        except Exception as e:
+            entry["grounding_works"] = False
+            entry["grounding_error"] = str(e)[:300]
+
+        # Check 2: does forced-JSON-schema output work - the exact thing
+        # the battlecard structuring step depends on.
+        try:
+            resp = client.models.generate_content(
+                model=model,
+                contents='Return the word "ok" as the answer field.',
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=TEST_SCHEMA,
+                ),
+            )
+            entry["structured_output_works"] = True
+            entry["structured_output_reply"] = (resp.text or "")[:80]
+        except Exception as e:
+            entry["structured_output_works"] = False
+            entry["structured_output_error"] = str(e)[:300]
+
+        entry["safe_to_promote"] = bool(
+            entry.get("grounding_works") and entry.get("structured_output_works")
+        )
+        results.append(entry)
+
+    return {"ok": True, "results": results}
