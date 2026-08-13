@@ -34,6 +34,7 @@ two-column body underneath stays plain paper; only the header gets the
 dark panel treatment.
 """
 
+import io
 import json
 import sys
 
@@ -43,9 +44,23 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
 PAGE_W = A4[0]
-PAGE_H = 920
 MARGIN = 16 * mm
 HEADER_H = 48.5 * mm
+
+# The page height is not fixed - a lead with a short, thin research record
+# (few product fits, a short strengths list) has real content that ends
+# well before a lead with a full record does, and a single fixed page
+# height for every card left a large, obviously dead gap between the last
+# section and the bottom edge on the thinner cards. Instead, build() below
+# does a two-pass render: a scratch pass on a generously tall canvas to
+# measure where the content actually ends, then a real pass sized to that
+# measurement plus a small constant footer margin. MEASURE_PAGE_H only
+# needs to be tall enough to fit the fullest realistic card - it is never
+# the height of the file that ships, so err generous rather than tune it
+# per lead.
+MEASURE_PAGE_H = 920
+BOTTOM_MARGIN = 20 * mm
+MIN_PAGE_H = 500
 
 # ---- palette ---------------------------------------------------------
 BLACK = (0.0, 0.0, 0.0)
@@ -70,6 +85,31 @@ HEADER_TEXT = (1.0, 1.0, 1.0)          # reversed-out white, header only
 HEADER_SUB = (0.80, 0.80, 0.80)        # light grey for one-liner/facts
 HEADER_LOW = (0.62, 0.62, 0.62)        # dimmer grey, header captions
 GREY_TINT = (0.94, 0.94, 0.94)    # soft pastel fill for low-emphasis chips
+
+# Fit-badge palette: each fit level gets its own soft tint + a deeply
+# saturated version of the same hue for its text, the identical pairing
+# system already used above for priority/category chips, just extended to
+# four states and lifted onto the black header. Reads as a quiet
+# traffic-light logic (green reads "go," orange reads "worth a look but
+# thinner," grey reads "low signal," white reads "empty") without ever
+# using a loud, saturated block color - the same restraint as the rest of
+# this card's palette.
+STRONG_FIT_TINT = (0.85, 0.94, 0.88)   # soft green
+STRONG_FIT_TEXT = (0.11, 0.45, 0.29)   # deep emerald green
+MEDIUM_FIT_TINT = (0.99, 0.88, 0.73)   # light/pastel orange
+MEDIUM_FIT_TEXT = (0.70, 0.40, 0.05)   # deep amber
+WEAK_FIT_TINT = (0.88, 0.88, 0.88)     # light grey
+WEAK_FIT_TEXT = (0.40, 0.40, 0.40)     # mid grey
+NO_FIT_TINT = (1.0, 1.0, 1.0)          # white
+NO_FIT_TEXT = INK                       # near-black
+
+# Prequate wordmark colors (Prequate Advisory brand standard: "PRE" in grey,
+# "QUATE" in orange), used only for the small credit mark at the foot of the
+# page — this card is Pasolite's sales tool, so the Pasolite palette above
+# owns the page; Prequate gets one quiet, fixed-position imprint, not a share
+# of the brand system.
+PREQUATE_GREY = (0.439, 0.439, 0.439)    # Prequate Grey #707070
+PREQUATE_ORANGE = (1.0, 0.588, 0.2)      # Prequate Orange #FF9633
 
 FONT = "Helvetica"
 FONT_B = "Helvetica-Bold"
@@ -188,14 +228,26 @@ def priority_chip(c, right_edge, y_top, priority):
 
 
 def fit_badge(c, right_edge, top_y, label):
-    """Solid red pill, plain white text, sitting on the black header panel —
-    the one accent-color "stamp" inside an otherwise black-and-white band,
-    rounded into a full pill for a friendlier finish. overall_fit is meant
-    to be a short two-or-three-word label ("Strong Fit"); max_w below caps
-    how wide this pill can ever grow, so if a model ever sends a full
-    sentence here instead, it clips to something that still fits the
-    header row rather than overlapping the wordmark or running off the
-    page."""
+    """A soft, rounded pill on the black header panel, tinted by the fit
+    level itself so a rep can read lead strength from color alone before
+    the word even registers - Strong Fit green ("go"), Medium Fit a warm
+    light orange ("worth a look, evidence is thinner"), Weak Fit a quiet
+    grey ("low signal"), No Fit a stark white ("nothing here"). Falls back
+    to the neutral grey pairing for anything that doesn't match one of the
+    four expected labels, the same defensive pattern priority_chip already
+    uses for an unrecognized priority value. overall_fit is meant to be a
+    short two-or-three-word label ("Strong Fit"); max_w below caps how
+    wide this pill can ever grow, so if a model ever sends a full sentence
+    here instead, it clips to something that still fits the header row
+    rather than overlapping the wordmark or running off the page."""
+    key = (label or "").strip().lower()
+    fill, text_color = {
+        "strong fit": (STRONG_FIT_TINT, STRONG_FIT_TEXT),
+        "medium fit": (MEDIUM_FIT_TINT, MEDIUM_FIT_TEXT),
+        "weak fit": (WEAK_FIT_TINT, WEAK_FIT_TEXT),
+        "no fit": (NO_FIT_TINT, NO_FIT_TEXT),
+    }.get(key, (WEAK_FIT_TINT, WEAK_FIT_TEXT))
+
     label = label.upper()
     c.setFont(FONT_B, 9)
     pad_x = 12
@@ -206,9 +258,9 @@ def fit_badge(c, right_edge, top_y, label):
     h = 8.5 * mm
     x = right_edge - w
     y = top_y - h
-    c.setFillColorRGB(*ACCENT)
+    c.setFillColorRGB(*fill)
     c.roundRect(x, y, w, h, h / 2, stroke=0, fill=1)
-    c.setFillColorRGB(1, 1, 1)
+    c.setFillColorRGB(*text_color)
     c.drawString(x + pad_x, y + h / 2 - 3.2, label)
     return x, y
 
@@ -224,39 +276,43 @@ def dot_list(c, items, x, y, col_w, dot_color, max_items, leading=10.2, size=8.6
     return y
 
 
-def build(data, out_path):
-    c = canvas.Canvas(out_path, pagesize=(PAGE_W, PAGE_H))
+def _render(c, data, page_h):
+    """Draws the full card onto canvas `c`, sized to `page_h`, and returns
+    the y-coordinate reached right after the last content section (before
+    the credit mark, which is always drawn a fixed distance from y=0
+    regardless of page height). build() below calls this twice: once to
+    measure, once for real."""
     c.setFillColorRGB(*PAPER)
-    c.rect(0, 0, PAGE_W, PAGE_H, stroke=0, fill=1)
+    c.rect(0, 0, PAGE_W, page_h, stroke=0, fill=1)
 
     # ---------------- header: solid black panel, reversed-out text ----------------
     c.setFillColorRGB(*HEADER_PANEL)
-    c.rect(0, PAGE_H - HEADER_H, PAGE_W, HEADER_H, stroke=0, fill=1)
+    c.rect(0, page_h - HEADER_H, PAGE_W, HEADER_H, stroke=0, fill=1)
 
     c.setFillColorRGB(*ACCENT)
     c.setFont(FONT_B, 10)
-    c.drawString(MARGIN, PAGE_H - 10 * mm, "PASOLITE")
+    c.drawString(MARGIN, page_h - 10 * mm, "PASOLITE")
     c.setFont(FONT, 6.3)
     c.setFillColorRGB(*HEADER_LOW)
     c.drawString(MARGIN + stringWidth("PASOLITE", FONT_B, 10) + 8,
-                  PAGE_H - 10 * mm + 0.5, tracked("SALES INTELLIGENCE BRIEF"))
+                  page_h - 10 * mm + 0.5, tracked("SALES INTELLIGENCE BRIEF"))
 
     fit = data.get("overall_fit", "")
     if fit:
-        fit_badge(c, PAGE_W - MARGIN, PAGE_H - 6.5 * mm, fit)
+        fit_badge(c, PAGE_W - MARGIN, page_h - 6.5 * mm, fit)
 
     c.setFillColorRGB(*HEADER_TEXT)
     c.setFont(FONT_B, 25)
     company_name = data.get("company_name", "Unnamed lead")
     company_name = clip_text(company_name, FONT_B, 25, PAGE_W - 2 * MARGIN)
-    c.drawString(MARGIN, PAGE_H - 21 * mm, company_name)
+    c.drawString(MARGIN, page_h - 21 * mm, company_name)
 
     c.setFont(FONT, 10)
     one_liner = data.get("one_liner", "")
-    draw_wrapped(c, one_liner, MARGIN, PAGE_H - 27.5 * mm, FONT, 10,
+    draw_wrapped(c, one_liner, MARGIN, page_h - 27.5 * mm, FONT, 10,
                  max_width=390, leading=12, color=HEADER_SUB, max_lines=2)
 
-    y_facts = PAGE_H - 40 * mm
+    y_facts = page_h - 40 * mm
     facts = data.get("quick_facts", [])
     if facts:
         c.setFont(FONT, 8.5)
@@ -266,16 +322,30 @@ def build(data, out_path):
 
     kc = data.get("key_contact", {})
     if kc and kc.get("name"):
+        # "LED BY" is a small tracked caption, the same treatment as
+        # "SALES INTELLIGENCE BRIEF" next to the wordmark above, so the
+        # name reads unambiguously as leadership rather than an
+        # unexplained name sitting in the header. Sits inline before the
+        # name rather than on its own line, since the header's fixed
+        # height has no spare vertical room for an extra line.
+        kc_y = y_facts - 5.5 * mm
+        caption = tracked("LED BY")
+        c.setFont(FONT, 6.3)
+        c.setFillColorRGB(*HEADER_LOW)
+        c.drawString(MARGIN, kc_y + 0.6, caption)
+        caption_w = stringWidth(caption, FONT, 6.3)
+
         line = kc["name"]
         if kc.get("role"):
             line += f", {kc['role']}"
         c.setFont(FONT_B, 8.3)
         c.setFillColorRGB(*HEADER_TEXT)
-        c.drawString(MARGIN, y_facts - 5.5 * mm,
-                      clip_text(line, FONT_B, 8.3, PAGE_W - 2 * MARGIN))
+        name_x = MARGIN + caption_w + 8
+        c.drawString(name_x, kc_y,
+                      clip_text(line, FONT_B, 8.3, PAGE_W - MARGIN - name_x))
 
-    hline(c, 0, PAGE_W, PAGE_H - HEADER_H, color=ACCENT, width=1.6)
-    y = PAGE_H - HEADER_H - 9 * mm
+    hline(c, 0, PAGE_W, page_h - HEADER_H, color=ACCENT, width=1.6)
+    y = page_h - HEADER_H - 9 * mm
 
     col_gap = 8 * mm
     col_w = (PAGE_W - 2 * MARGIN - col_gap) / 2
@@ -409,10 +479,61 @@ def build(data, out_path):
     if footer_bits:
         hline(c, MARGIN, PAGE_W - MARGIN, y, color=RULE, width=1)
         y -= 5 * mm
-        footer_text = "   |   ".join(footer_bits)
-        draw_wrapped(c, footer_text, MARGIN, y, FONT_I, 7,
-                     PAGE_W - 2 * MARGIN, 8.6, color=LOW, max_lines=2)
+        y = draw_wrapped(c, footer_text := "   |   ".join(footer_bits), MARGIN, y,
+                          FONT_I, 7, PAGE_W - 2 * MARGIN, 8.6, color=LOW, max_lines=2)
 
+    content_bottom_y = y
+
+    # ---------------- Prequate credit mark ----------------
+    # Fixed position, independent of the footer's variable-length text above,
+    # so it never collides regardless of how long data_confidence/verify_
+    # before_meeting run. A small tracked "PREPARED BY" caption sits above
+    # the wordmark so the mark reads unambiguously on a first glance rather
+    # than needing to be hunted for in the corner - this is the one place
+    # Prequate's own identity appears on a card that is otherwise entirely
+    # Pasolite's, so it needs to actually register, not just technically
+    # be present.
+    wm_size = 9.5
+    c.setFont(FONT_B, wm_size)
+    quate_w = stringWidth("QUATE", FONT_B, wm_size)
+    pre_w = stringWidth("PRE", FONT_B, wm_size)
+    credit_y = 9 * mm
+    credit_x = PAGE_W - MARGIN - quate_w
+    c.setFillColorRGB(*PREQUATE_GREY)
+    c.drawString(credit_x - pre_w, credit_y, "PRE")
+    c.setFillColorRGB(*PREQUATE_ORANGE)
+    c.drawString(credit_x, credit_y, "QUATE")
+
+    caption = tracked("PREPARED BY")
+    c.setFont(FONT, 6.2)
+    caption_w = stringWidth(caption, FONT, 6.2)
+    c.setFillColorRGB(*PREQUATE_GREY)
+    c.drawString(PAGE_W - MARGIN - caption_w, credit_y + 5.2 * mm, caption)
+
+    return content_bottom_y
+
+
+def build(data, out_path):
+    """Renders the one-page battlecard, sizing the page to how much this
+    particular lead's content actually needs rather than one fixed height
+    for every card. A thin research record (few product fits, a short
+    strengths list) still has to fit inside the same page height as a
+    fully-populated one under a fixed-size layout, which leaves a large,
+    visibly dead gap between the last section and the bottom edge - not a
+    look a one-page sales tool should ship with. Pass 1 renders onto a
+    scratch, never-saved canvas just to measure where the content actually
+    ends; pass 2 renders the real file at exactly that height plus a
+    constant bottom margin for the footer rule and the Prequate credit
+    mark. Text wrapping only depends on column width, not page height, so
+    the two passes lay out identically and the measurement is reliable."""
+    scratch = canvas.Canvas(io.BytesIO(), pagesize=(PAGE_W, MEASURE_PAGE_H))
+    content_bottom_y = _render(scratch, data, MEASURE_PAGE_H)
+
+    used_height = MEASURE_PAGE_H - content_bottom_y
+    fitted_height = max(MIN_PAGE_H, used_height + BOTTOM_MARGIN)
+
+    c = canvas.Canvas(out_path, pagesize=(PAGE_W, fitted_height))
+    _render(c, data, fitted_height)
     c.showPage()
     c.save()
 
