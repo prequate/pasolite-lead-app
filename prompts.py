@@ -41,29 +41,53 @@ Cover, in your written findings:
   residential vs commercial vs hospitality, indoor vs landscape.
 - Project portfolio and patterns: what they've actually built, especially \
   recently - named projects, repeat developers, anything live or ongoing.
-- Lighting requirements and patterns: where lighting shows up in their work \
-  (facade, landscape, interior, water features), architecture-integrated vs \
-  decorative-led, and anything conspicuously absent (smart controls, \
-  human-centric lighting, DALI/DMX).
+- Outdoor lighting evidence specifically - this is the single most \
+  important thing to establish, and it is a different question from "is \
+  this a credible architecture/design/lighting firm." Being a respected \
+  firm with excellent interior work is not evidence of outdoor lighting \
+  relevance on its own. Actively search for, and report separately from \
+  general lighting work, anything showing facade lighting, landscape \
+  lighting, street or road lighting, urban or public-realm lighting, \
+  architectural exterior lighting, exterior commercial lighting, \
+  hospitality or resort outdoor lighting, residential township outdoor \
+  lighting, or large-scale infrastructure/exterior lighting. For each \
+  piece of evidence found, say plainly whether it's a completed project, \
+  a recurring project type across their portfolio, or just one occasion. \
+  If a project mentions lighting only in interior terms (coves, ceilings, \
+  gallery walls, interior fixtures), say so explicitly rather than letting \
+  it read as ambiguous outdoor evidence - the distinction matters more \
+  than the overall lighting mention.
+- Pipeline and upcoming work that would plausibly require outdoor \
+  lighting specifically (a live township, an exterior heritage \
+  restoration, a hospitality build with landscaped grounds, a public \
+  realm or campus project), as distinct from pipeline in general.
+- Lighting requirements and patterns beyond outdoor: where else lighting \
+  shows up in their work (interior, water features), architecture- \
+  integrated vs decorative-led, and anything conspicuously absent (smart \
+  controls, human-centric lighting, DALI/DMX).
 - Project scale and price positioning: typical ticket size by project type \
   and where they sit in the market (premium, mass-premium, mass), \
   triangulated from client profile, project scale, and press coverage, \
   never a claimed disclosed figure.
-- Which Pasolite categories genuinely fit their work (architectural \
-  downlights, linear profiles, magnetic track, spotlights, wall washers, \
-  facade lighting, landscape lighting, bollards, decorative and pendant \
-  lighting, smart/DALI/DMX/human-centric lighting), with real evidence \
-  behind each one you name.
+- Which Pasolite categories genuinely fit their work (Architectural \
+  Downlights, Linear Profiles, Magnetic Track, Spotlights, Wall Washers, \
+  Facade Lighting, Landscape Lighting, Bollards, Decorative and Pendant \
+  Lighting, Smart/DALI/DMX/Human-Centric Lighting), with real evidence \
+  behind each one you name, and whether that evidence is indoor or \
+  outdoor.
 - Decision makers: who actually has influence, and any buying signals \
   (recent hires, new offices, awards, public statements about wanting new \
-  vendor relationships).
+  vendor relationships), and whether they're positioned to influence, \
+  specify, recommend, or procure lighting decisions at all.
 - Competitor and vendor signals: what lighting brands, if any, this firm \
   already shows evidence of using, and how confident that evidence is.
 
 If something can't be found after a genuine effort, say "not publicly \
-available" rather than guessing. Write your findings as clear prose \
-organized under those headings - this is a research write-up, not the final \
-formatted deliverable.\
+available" rather than guessing. A firm with no outdoor lighting evidence \
+after a genuine search is a normal, common outcome, say that plainly \
+rather than stretching an interior project to sound like it might count. \
+Write your findings as clear prose organized under those headings - this \
+is a research write-up, not the final formatted deliverable.\
 """
 
 STRUCTURE_PROMPT_TEMPLATE = """\
@@ -81,37 +105,109 @@ Writing rules, followed exactly:
 - No filler description. State findings the research actually supports \
   plainly, without hedging ("might," "could potentially"). Hedge only where \
   the gap is real (write "Not publicly available" rather than guessing).
+- quick_facts: 3-5 SHORT items only, about 5 words each, rendered as a \
+  strip of short tags separated by slashes under the one-liner, not read \
+  as sentences. Typically: city, founding year and/or years in operation \
+  (these two can combine into one tag, e.g. "Est. 1996 · 30 yrs"), firm \
+  size, and primary segment. Never combine multiple unrelated facts into \
+  one item with "and"/commas/"led by" - each item is one short fact, not \
+  a run-on sentence. Never put a person's name or title in quick_facts, \
+  that belongs only in key_contact, which already carries it and renders \
+  it separately. Good items: "Bangalore", "Est. 1996 · 30 yrs", "15-30 \
+  architects", "Institutional & residential". Bad, do not do this: \
+  "Established in 1996 in Bengaluru, led by Founder and Principal \
+  Architect Ravindra Kumar" - that's a sentence, not a fact tag, and it \
+  duplicates key_contact.
 - ticket_size ranges and any other figure that isn't a disclosed fact must \
   read as an estimate in the text itself, e.g. "Est. Rs. 15-40L lighting \
   scope per villa, based on project scale and finish level [ESTIMATED]" - \
   write "Rs." not the rupee symbol, which doesn't render in the PDF font.
-- overall_fit is a short badge label only, two or three words, e.g. \
-  "Strong Fit", "Moderate Fit", "Weak Fit". It renders inside a small red \
-  pill at the top of the card, so it must never be a sentence, a \
-  clause, or a description of who the fit is for - that reasoning belongs \
-  in one_liner or the product_fits reasons, not here.
+- overall_fit is a short badge label only, two or three words: "Strong \
+  Fit", "Medium Fit", "Weak Fit", or "No Fit". It renders inside a small \
+  colored pill at the top of the card (the color itself signals which \
+  one), so it must never be a sentence, a clause, or a description of who \
+  the fit is for - that reasoning belongs in one_liner or the \
+  product_fits reasons, not here. Which of the four \
+  words to use is the single highest-stakes judgment call on this card, \
+  and it follows this exact hierarchy, not a general impression of how \
+  credible or prestigious the firm is:
+    - Strong Fit: only when the research turned up clear, specific \
+      evidence of a meaningful outdoor lighting project base and/or \
+      pipeline - a real history of facade, landscape, street/road, \
+      urban/public-realm, architectural-exterior, exterior-commercial, \
+      hospitality/resort-outdoor, residential-township-outdoor, or \
+      large-scale infrastructure lighting work, ideally more than one \
+      instance of it, or strong relationships (with developers, \
+      contractors, project owners) that plausibly generate recurring \
+      outdoor lighting opportunities. Being an architecture, interior \
+      design, or lighting-adjacent firm is not by itself evidence, and \
+      none of the following, alone, earn Strong Fit: being described as \
+      an "architectural firm," having designed prestigious or luxury \
+      buildings, working with well-known developers, having "some \
+      exterior work" with no further detail, having lighting experience \
+      in general, or having exactly one outdoor lighting project on \
+      record. If in doubt, do not round up to Strong Fit.
+    - Medium Fit: a real, relevant player in Pasolite's ecosystem \
+      (architecture, interior design, hospitality design, MEP/lighting \
+      consulting) whose work is predominantly interior-focused, or where \
+      outdoor lighting comes up only occasionally or ambiguously rather \
+      than as a real pattern. This is the default landing spot for a \
+      credible design firm when the outdoor lighting evidence itself is \
+      thin, not Strong Fit with a caveat.
+    - Weak Fit: indirect relevance only - an adjacent architecture, \
+      engineering, or design business where lighting procurement overlap \
+      is limited or incidental, or where the firm could theoretically \
+      influence a project but is unlikely to drive meaningful outdoor \
+      lighting demand.
+    - No Fit: little or no credible connection to Pasolite's business at \
+      all.
+  Be conservative and say so plainly when evidence is thin - an honest \
+  Medium Fit with a clear reason is more useful to the rep than an \
+  optimistic Strong Fit that overstates what the research actually found.
 - Judgment calls (overall_fit, strengths, weaknesses, price_positioning) \
   are plain-language points, never numeric scores.
 - product_fits[].name is ONLY the short Pasolite category name itself \
-  (architectural downlights, linear profiles, magnetic track, spotlights, \
-  wall washers, facade lighting, landscape lighting, bollards, decorative \
-  and pendant lighting, smart/DALI/DMX/human-centric lighting, or a close \
+  (Architectural Downlights, Linear Profiles, Magnetic Track, Spotlights, \
+  Wall Washers, Facade Lighting, Landscape Lighting, Bollards, Decorative \
+  and Pendant Lighting, Smart/DALI/DMX/Human-Centric Lighting, or a close \
   two-to-four-word variant of one of these) - never a longer descriptive \
-  phrase and never anything in parentheses. It renders on a single line \
-  next to a priority chip, so a long name will visually collide with that \
-  chip. Any technical detail (deep-recessed, low glare/UGR, specific CRI \
-  or color temperature, DALI/DMX capability, and so on) belongs in \
-  `reason`, not folded into `name`.
+  phrase and never anything in parentheses. Always title case, every \
+  principal word capitalized (e.g. "Architectural Downlights", not \
+  "architectural downlights" or "ARCHITECTURAL DOWNLIGHTS"), matching how \
+  a category name would appear as a label, not as a word inside a \
+  sentence. It renders on a single line next to a priority chip, so a \
+  long name will visually collide with that chip. Any technical detail \
+  (deep-recessed, low glare/UGR, specific CRI or color temperature, \
+  DALI/DMX capability, and so on) belongs in `reason`, not folded into \
+  `name`.
 - product_fits: only the 4-6 categories with genuine evidence behind them, \
   ordered highest priority first, each reason tying it to actual observed \
-  work.
+  work. Outdoor categories (Facade Lighting, Landscape Lighting, Bollards) \
+  earn High priority only when the reason cites specific outdoor project \
+  evidence, not general design philosophy - a firm's stated preference \
+  for "architectural-grade specifications" is not, on its own, evidence \
+  for an outdoor category. If a category's only support is indoor work \
+  (interior coves, ceilings, gallery walls), its priority should reflect \
+  that it's an indoor use case, not be inflated because the category name \
+  sounds exterior.
 - lighting_profile: the account's own behavior (where lighting shows up, \
-  architecture-integrated vs decorative, what's conspicuously absent), not \
-  a restatement of product_fits.
+  architecture-integrated vs decorative, what's conspicuously absent), \
+  explicitly distinguishing indoor from outdoor evidence rather than \
+  blending them into one impression - not a restatement of product_fits.
 - projects: 3-7 of the most relevant/recent named projects that tell the \
-  rep something concrete, most recent or most relevant first.
-- strengths: 4-5 concrete, specific reasons this lead is worth pursuing. \
-  weaknesses: 3-4 real risks or gaps, stated as plainly as the strengths.
+  rep something concrete, most recent or most relevant first. Where a \
+  project is genuine outdoor lighting evidence (facade, landscape, \
+  street, public realm, exterior commercial or hospitality, township, \
+  infrastructure), the note should say so plainly rather than leaving it \
+  to be inferred from the project name or category tag alone.
+- strengths: 4-5 concrete, specific reasons this lead is worth pursuing, \
+  covering both current outdoor lighting evidence and credible pipeline - \
+  upcoming or live work plausibly requiring outdoor lighting - where \
+  either genuinely exists; don't invent pipeline that isn't supported by \
+  the research. weaknesses: 3-4 real risks or gaps, stated as plainly as \
+  the strengths - if the overall_fit is Medium or Weak specifically \
+  because outdoor lighting evidence is thin or absent, say that directly \
+  here rather than only implying it through the fit badge.
 - verify_before_meeting: only genuinely uncertain items worth a live \
   sanity-check, or an empty list if the research was solid.
 - whatsapp_summary: three to five plain sentences for a phone screen - who \
@@ -222,31 +318,43 @@ BATTLECARD_SCHEMA = {
 # the rest of that server's uptime, so this costs nothing after the first
 # request.
 #
-# COST ORDERING - updated from real production logs, not just documentation.
+# COST ORDERING - updated a second time, from the account's real Spend
+# dashboard, not just documentation or logs. This is the important lesson
+# from that update: gemini-flash-latest and gemini-flash-lite-latest are
+# FLOATING POINTERS, not fixed models - Google can and does repoint them to
+# a newer model generation without notice. When we put gemini-flash-latest
+# first, it quietly resolved to "Gemini 3.6 Flash," a full flagship model,
+# not a lite one, and that's what actually ran up the token bill. Putting a
+# floating alias first optimizes for "something that works," not for
+# "something cheap" - those turned out to be two different models.
 #
-# We originally put gemini-2.0-flash and gemini-2.5-flash-lite first because
-# they're the cheapest per token ($0.10/$0.40 per million vs gemini-2.5-flash's
-# $0.30/$2.50 [CATEGORY RESEARCH, NOT CLIENT-CONFIRMED - re-check
-# ai.google.dev/gemini-api/docs/pricing before treating as final]). Google
-# Search grounding itself (1,500 free grounded requests/day, then $35/1,000)
-# costs the same regardless of which model makes the call, so model choice
-# only ever moves the token bill, not the grounding bill.
+# [CATEGORY RESEARCH, NOT CLIENT-CONFIRMED - re-check
+# ai.google.dev/gemini-api/docs/pricing before treating any of this as
+# final, this whole model line has moved more than once during this build]
+# Per-million-token pricing as of this update:
+#   gemini-3.1-flash-lite:   $0.25 in / $1.50 out   <- cheapest confirmed-real model
+#   gemini-3.5-flash-lite:   $0.30 in / $2.50 out
+#   gemini-2.0-flash:        $0.10 in / $0.40 out   <- cheaper on paper, but 404s
+#   gemini-2.5-flash-lite:   $0.10 in / $0.40 out   <- on this account (see below)
+#   gemini-flash-latest  -> currently "Gemini 3.6 Flash": $1.50 in / $7.50 out
+#   gemini-2.5-flash:        $0.30 in / $2.50 out
+# Grounding differs by generation too, not just by model: the 2.x line gets
+# 1,500 free grounded requests A DAY; the entire 3.x line shares one pool of
+# 5,000 free grounded requests A MONTH, after which each extra request is
+# actually cheaper on 3.x ($14/1,000 vs $35/1,000). So 2.x, if it ever works
+# again on this account, is the better deal on volume - it's just blocked
+# right now (see below).
 #
-# But Render's logs (checked directly, not guessed) show gemini-2.0-flash and
-# gemini-2.5-flash-lite both failing INSTANTLY on this account with no retry
-# attempt logged at all - meaning they hit the permanent "not available" 404,
-# not a transient error. They are a dead end for this account right now,
-# regardless of how cheap they'd be if they worked. The two "-latest"
-# aliases are the only candidates actually confirmed to succeed in
-# production. gemini-flash-lite-latest goes first since it's the lite-tier
-# alias and almost certainly cheaper than gemini-flash-latest (the flagship
-# alias) - though neither alias's price is listed by name on Google's
-# pricing page, so this is a reasonable inference, not a confirmed rate;
-# check the account's real "Spend" page if the exact split ever matters.
-# gemini-2.0-flash and gemini-2.5-flash-lite are kept in the list anyway
-# since they cost nothing to fail fast on and may start working again if
-# Google lifts whatever block is on them. Full-price gemini-2.5-flash stays
-# last resort.
+# gemini-3.1-flash-lite and gemini-3.5-flash-lite are real, specific,
+# non-alias models - not moving targets - and both showed up as
+# generateContent-capable in this account's own /api/diag output, so they
+# go first, cheapest first. gemini-2.0-flash and gemini-2.5-flash-lite come
+# next: Render's logs show them failing INSTANTLY with no retry logged,
+# meaning a permanent "not available" 404 on this account right now, not a
+# transient error - dead ends today, but cheap and worth leaving in in case
+# Google lifts whatever block that is. The two floating aliases and
+# full-price gemini-2.5-flash are last resort only, specifically because
+# they're the expensive/unpredictable options, not the cheap ones.
 #
 # Whichever model actually succeeds gets cached in research.py for the
 # rest of that server's uptime, so re-ordering this list costs nothing
@@ -257,14 +365,37 @@ BATTLECARD_SCHEMA = {
 # that's the moment to open https://ai.google.dev/gemini-api/docs/models
 # and https://ai.google.dev/gemini-api/docs/pricing for whatever Google
 # currently recommends, and add it to the front of this list. Don't
-# replace the whole list with a single new guess again - check the logs
-# first, the way this update was made.
+# replace the whole list with a single new guess again - check the
+# account's real Spend dashboard first, the way this update was made,
+# since that's the only place that shows what a model actually resolved to
+# and actually cost, as opposed to what its name implies.
 CANDIDATE_MODELS = [
-    "gemini-flash-lite-latest",
-    "gemini-flash-latest",
+    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash-lite",
     "gemini-2.0-flash",
     "gemini-2.5-flash-lite",
+    "gemini-flash-lite-latest",
+    "gemini-flash-latest",
     "gemini-2.5-flash",
+    # Added after a live outage on Aug 19, 2026: every candidate above
+    # failed at once on the deployed account, and the 404 from
+    # gemini-2.5-flash (the last one tried) told us directly what to do -
+    # "This model ... is no longer available to new users. Please update
+    # your code to use models/gemini-3.6-flash." gemini-flash-latest above
+    # is already believed to resolve to the same underlying "Gemini 3.6
+    # Flash" model, but it's a floating alias, not a fixed name, so it can
+    # silently repoint again the way it already has once before in this
+    # project. This entry is the literal, specific model name Google's own
+    # error named, so it stays addressable even if that alias drifts.
+    # Deliberately last and only reached if every cheaper candidate above
+    # has failed - at roughly 5-6x the per-token cost of the flash-lite
+    # models, it's an emergency backstop against a total outage, not a
+    # model this app should be routing to normally. If this app starts
+    # actually using this fallback regularly, that's the signal to go
+    # re-verify pricing and availability at
+    # https://ai.google.dev/gemini-api/docs/pricing and reconsider the
+    # whole list, not just leave it running on the expensive option.
+    "gemini-3.6-flash",
 ]
 
 # Kept for anything that still wants a single display name (e.g. logging).
