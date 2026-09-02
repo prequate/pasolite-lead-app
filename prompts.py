@@ -81,6 +81,19 @@ Cover, in your written findings:
   specify, recommend, or procure lighting decisions at all.
 - Competitor and vendor signals: what lighting brands, if any, this firm \
   already shows evidence of using, and how confident that evidence is.
+- Peer-price-segment brand relationships specifically: search separately \
+  for any evidence this firm already works with, specifies, or has \
+  procured from K-Lite, Hybec, Ledlum, or Changi [PREQUATE ACCOUNT TEAM- \
+  PROVIDED - these four are named by Pasolite's own account team as firms \
+  in roughly Pasolite's own price segment, not yet independently verified \
+  by Prequate]. A genuine, credited relationship with any one of these is \
+  a distinct, strong signal on its own: it means this account already \
+  buys, specifies, or serves clients at Pasolite's price point, \
+  regardless of whether the lighting itself was indoor or outdoor. Note \
+  exactly which brand and what the evidence is (a project credit, a \
+  case study, a stated vendor relationship) - don't infer this from the \
+  firm merely being "premium" or "high-end" without a named, credited \
+  relationship to one of these four specifically.
 
 If something can't be found after a genuine effort, say "not publicly \
 available" rather than guessing. A firm with no outdoor lighting evidence \
@@ -131,22 +144,36 @@ Writing rules, followed exactly:
   words to use is the single highest-stakes judgment call on this card, \
   and it follows this exact hierarchy, not a general impression of how \
   credible or prestigious the firm is:
-    - Strong Fit: only when the research turned up clear, specific \
-      evidence of a meaningful outdoor lighting project base and/or \
-      pipeline - a real history of facade, landscape, street/road, \
-      urban/public-realm, architectural-exterior, exterior-commercial, \
-      hospitality/resort-outdoor, residential-township-outdoor, or \
-      large-scale infrastructure lighting work, ideally more than one \
-      instance of it, or strong relationships (with developers, \
-      contractors, project owners) that plausibly generate recurring \
-      outdoor lighting opportunities. Being an architecture, interior \
-      design, or lighting-adjacent firm is not by itself evidence, and \
-      none of the following, alone, earn Strong Fit: being described as \
-      an "architectural firm," having designed prestigious or luxury \
-      buildings, working with well-known developers, having "some \
-      exterior work" with no further detail, having lighting experience \
-      in general, or having exactly one outdoor lighting project on \
-      record. If in doubt, do not round up to Strong Fit.
+    - Strong Fit: earned either of two ways, and only one needs to be \
+      true.
+        (a) Outdoor lighting evidence: clear, specific evidence of a \
+        meaningful outdoor lighting project base and/or pipeline - a \
+        real history of facade, landscape, street/road, \
+        urban/public-realm, architectural-exterior, exterior-commercial, \
+        hospitality/resort-outdoor, residential-township-outdoor, or \
+        large-scale infrastructure lighting work, ideally more than one \
+        instance of it, or strong relationships (with developers, \
+        contractors, project owners) that plausibly generate recurring \
+        outdoor lighting opportunities. Being an architecture, interior \
+        design, or lighting-adjacent firm is not by itself evidence, and \
+        none of the following, alone, earn Strong Fit this way: being \
+        described as an "architectural firm," having designed \
+        prestigious or luxury buildings, working with well-known \
+        developers, having "some exterior work" with no further detail, \
+        having lighting experience in general, or having exactly one \
+        outdoor lighting project on record.
+        (b) Peer-price-segment brand relationship: genuine, credited \
+        evidence the firm already works with, specifies, or has \
+        procured from K-Lite, Hybec, Ledlum, or Changi - named by \
+        Pasolite's own account team as peers in Pasolite's price \
+        segment. This applies regardless of whether that brand's work \
+        with the firm was indoor or outdoor, since the point of this \
+        signal is proven buying behavior at Pasolite's price point, not \
+        outdoor relevance specifically. It must be a real, named, \
+        credited relationship (a project credit, a case study, a stated \
+        vendor relationship), not an inference from the firm simply \
+        being "premium" or "high-end."
+      If in doubt on either path, do not round up to Strong Fit.
     - Medium Fit: a real, relevant player in Pasolite's ecosystem \
       (architecture, interior design, hospitality design, MEP/lighting \
       consulting) whose work is predominantly interior-focused, or where \
@@ -204,10 +231,15 @@ Writing rules, followed exactly:
   covering both current outdoor lighting evidence and credible pipeline - \
   upcoming or live work plausibly requiring outdoor lighting - where \
   either genuinely exists; don't invent pipeline that isn't supported by \
-  the research. weaknesses: 3-4 real risks or gaps, stated as plainly as \
-  the strengths - if the overall_fit is Medium or Weak specifically \
-  because outdoor lighting evidence is thin or absent, say that directly \
-  here rather than only implying it through the fit badge.
+  the research. If overall_fit reached Strong Fit through a peer-price- \
+  segment brand relationship (K-Lite, Hybec, Ledlum, Changi) rather than \
+  through outdoor lighting evidence, say so explicitly and name the brand \
+  - a rep should see plainly why the badge says Strong Fit even without \
+  outdoor project history to point to. weaknesses: 3-4 real risks or \
+  gaps, stated as plainly as the strengths - if the overall_fit is Medium \
+  or Weak specifically because outdoor lighting evidence is thin or \
+  absent, say that directly here rather than only implying it through \
+  the fit badge.
 - verify_before_meeting: only genuinely uncertain items worth a live \
   sanity-check, or an empty list if the research was solid.
 - whatsapp_summary: three to five plain sentences for a phone screen - who \
