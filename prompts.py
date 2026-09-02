@@ -89,6 +89,25 @@ Cover, in your written findings:
   (recent hires, new offices, awards, public statements about wanting new \
   vendor relationships), and whether they're positioned to influence, \
   specify, recommend, or procure lighting decisions at all.
+- Key contacts to meet - the literal people a rep should try to get a \
+  meeting with, a different and more specific question than the general \
+  decision-maker read above. Search specifically, by name, for whoever \
+  currently holds, or most recently held, a Procurement Manager/Head of \
+  Procurement, Procurement Executive, Purchase Manager/Purchase \
+  Executive, Materials/Supply Chain Manager, or Senior Architect role (or \
+  a clear equivalent - anyone who actually specifies, recommends, or buys \
+  lighting) at this specific company, not at a similarly-named but \
+  different company. Search the company's own website (leadership, team, \
+  or about pages), LinkedIn, and public business directories. Report a \
+  name only when you find a specific, current, real, credited match for \
+  THIS company - never a same-named person elsewhere, never a guess \
+  dressed up as a finding, and say plainly if someone appears to have \
+  since moved on. Include the LinkedIn URL whenever you find one, and say \
+  which source confirmed the role (the company's own site, LinkedIn, or \
+  both). If a genuine search turns up no one for a given role, say so \
+  plainly ("no named [role] found publicly") rather than inventing a name \
+  or leaving it ambiguous - this becomes the rep's literal call list, so \
+  an honest gap is far better than a wrong name.
 - Competitor and vendor signals: what lighting brands, if any, this firm \
   already shows evidence of using, and how confident that evidence is.
 - Peer-price-segment brand relationships specifically: search separately \
@@ -124,7 +143,16 @@ the rep should say. Do not write opening lines, objection handling, or "do \
 not lead with" advice into any field.
 
 Writing rules, followed exactly:
-- No em dashes anywhere. Use a comma or a second sentence instead.
+- No em dashes anywhere. Use a comma or a second sentence instead. A \
+  hyphen inside an ordinary compound word (mass-premium, residential- \
+  township-outdoor, K-Lite) is fine - what's banned is a hyphen used the \
+  way an em dash would be, to punctuate a full clause.
+- Never use these words or phrases, in any field: delve, unlock, \
+  leverage, navigate, robust, holistic, comprehensive, transformative, \
+  strategic partner. These read as generic AI filler, not as a specific \
+  fact about this account. Where a sentence would naturally reach for one \
+  of them, replace it with the plain, concrete fact instead - not a \
+  different vague word standing in for the same one.
 - No filler description. State findings the research actually supports \
   plainly, without hedging ("might," "could potentially"). Hedge only where \
   the gap is real (write "Not publicly available" rather than guessing).
@@ -211,6 +239,30 @@ Writing rules, followed exactly:
   optimistic Strong Fit that overstates what the research actually found.
 - Judgment calls (overall_fit, strengths, weaknesses, price_positioning) \
   are plain-language points, never numeric scores.
+- key_contacts_to_meet: the literal people a rep should try to meet - \
+  Procurement Manager/Head of Procurement, Procurement Executive, \
+  Purchase Manager/Purchase Executive, Materials/Supply Chain Manager, \
+  Senior Architect, or a clear equivalent role that specifies, \
+  recommends, or buys lighting. This is separate from key_contact, which \
+  is the single top-line leader shown in the header (founder, principal, \
+  CEO) - key_contacts_to_meet is the operational buy-side call list, not \
+  leadership. Build one entry per role the research findings actually \
+  address; do not invent an entry for a role the findings never touched. \
+  Each entry: designation (the role, in plain title case), name (the \
+  person's name ONLY if the research findings actually name one for this \
+  specific company - leave this an empty string rather than ever \
+  guessing, inferring, or carrying over a name from a different company), \
+  linkedin_url (the URL only if the findings state one, otherwise an \
+  empty string - never construct or guess at a URL), note (one short, \
+  plain sentence on how confident and current this is, naming the source \
+  where possible, e.g. "Confirmed on the company's own leadership page \
+  and cross-checked on LinkedIn" or "No named procurement lead found \
+  publicly after a genuine search; role appears to sit with the \
+  Operations Head"). It is far better to leave name and linkedin_url \
+  empty and say so honestly in note than to invent or guess a name - a \
+  wrong name here is a rep contacting the wrong person, which is worse \
+  than an honest gap. If the research genuinely found no one relevant to \
+  report for any role, return an empty list rather than forcing an entry.
 - product_fits[].name is ONLY the short Pasolite category name itself \
   (Architectural Downlights, Linear Profiles, Magnetic Track, Spotlights, \
   Wall Washers, Facade Lighting, Landscape Lighting, Bollards, Decorative \
@@ -301,6 +353,19 @@ BATTLECARD_SCHEMA = {
                 "role": {"type": "string"},
             },
             "required": ["name"],
+        },
+        "key_contacts_to_meet": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "designation": {"type": "string"},
+                    "name": {"type": "string"},
+                    "linkedin_url": {"type": "string"},
+                    "note": {"type": "string"},
+                },
+                "required": ["designation", "note"],
+            },
         },
         "product_fits": {
             "type": "array",
