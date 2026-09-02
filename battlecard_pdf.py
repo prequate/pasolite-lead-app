@@ -40,6 +40,7 @@ import sys
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
@@ -265,6 +266,50 @@ def fit_badge(c, right_edge, top_y, label):
     return x, y
 
 
+LOGO_TILE_SIZE = 9 * mm
+LOGO_TILE_PAD = 1.6 * mm
+LOGO_TILE_GAP = 4 * mm  # clearance between the tile and whatever sits to its right
+
+
+def draw_logo_tile(c, right_edge, top_y, logo_bytes):
+    """A small, fixed-size white tile holding the lead's own logo, sat on
+    its own neutral plate rather than directly on the black header panel -
+    a third-party logo is almost always designed to sit on a white page,
+    not Pasolite's dark header, so isolating it on a white tile means it
+    always renders correctly regardless of its own original colors or
+    transparency. This is only ever called with logo_bytes that already
+    passed validation upstream (app.py only fetches and keeps a logo it's
+    confident about); if reportlab still can't parse it for any reason,
+    this fails silently and draws nothing rather than a broken image or a
+    placeholder box - a lead with no usable logo renders exactly like the
+    card always has, with no visible gap where a logo would have gone."""
+    size = LOGO_TILE_SIZE
+    x = right_edge - size
+    y = top_y - size
+    try:
+        reader = ImageReader(io.BytesIO(logo_bytes))
+        iw, ih = reader.getSize()
+        if not iw or not ih:
+            return right_edge
+    except Exception:
+        return right_edge
+
+    c.setFillColorRGB(1, 1, 1)
+    c.roundRect(x, y, size, size, 1.6, stroke=0, fill=1)
+
+    inner = size - 2 * LOGO_TILE_PAD
+    scale = min(inner / iw, inner / ih)
+    draw_w, draw_h = iw * scale, ih * scale
+    draw_x = x + (size - draw_w) / 2
+    draw_y = y + (size - draw_h) / 2
+    try:
+        c.drawImage(reader, draw_x, draw_y, width=draw_w, height=draw_h,
+                    mask="auto")
+    except Exception:
+        pass
+    return x
+
+
 def dot_list(c, items, x, y, col_w, dot_color, max_items, leading=10.2, size=8.6, max_lines=2):
     for item in items[:max_items]:
         c.setFillColorRGB(*dot_color)
@@ -276,12 +321,15 @@ def dot_list(c, items, x, y, col_w, dot_color, max_items, leading=10.2, size=8.6
     return y
 
 
-def _render(c, data, page_h):
+def _render(c, data, page_h, logo_bytes=None):
     """Draws the full card onto canvas `c`, sized to `page_h`, and returns
     the y-coordinate reached right after the last content section (before
     the credit mark, which is always drawn a fixed distance from y=0
     regardless of page height). build() below calls this twice: once to
-    measure, once for real."""
+    measure, once for real. logo_bytes is the lead's own logo, already
+    fetched and validated in app.py - never fetched or guessed at here,
+    this function only draws what it's handed, and draws nothing at all
+    when it's None."""
     c.setFillColorRGB(*PAPER)
     c.rect(0, 0, PAGE_W, page_h, stroke=0, fill=1)
 
@@ -298,8 +346,13 @@ def _render(c, data, page_h):
                   page_h - 10 * mm + 0.5, tracked("SALES INTELLIGENCE BRIEF"))
 
     fit = data.get("overall_fit", "")
+    badge_left = None
     if fit:
-        fit_badge(c, PAGE_W - MARGIN, page_h - 6.5 * mm, fit)
+        badge_left, _ = fit_badge(c, PAGE_W - MARGIN, page_h - 6.5 * mm, fit)
+    if logo_bytes:
+        logo_right_edge = (badge_left - LOGO_TILE_GAP) if badge_left is not None \
+            else (PAGE_W - MARGIN)
+        draw_logo_tile(c, logo_right_edge, page_h - 6.5 * mm, logo_bytes)
 
     c.setFillColorRGB(*HEADER_TEXT)
     c.setFont(FONT_B, 25)
@@ -513,7 +566,7 @@ def _render(c, data, page_h):
     return content_bottom_y
 
 
-def build(data, out_path):
+def build(data, out_path, logo_bytes=None):
     """Renders the one-page battlecard, sizing the page to how much this
     particular lead's content actually needs rather than one fixed height
     for every card. A thin research record (few product fits, a short
@@ -525,15 +578,20 @@ def build(data, out_path):
     ends; pass 2 renders the real file at exactly that height plus a
     constant bottom margin for the footer rule and the Prequate credit
     mark. Text wrapping only depends on column width, not page height, so
-    the two passes lay out identically and the measurement is reliable."""
+    the two passes lay out identically and the measurement is reliable.
+
+    logo_bytes is optional, pre-fetched and pre-validated PNG bytes of the
+    lead's own logo (see app.py's fetch_logo_png) - this function never
+    fetches anything itself, and simply omits the logo entirely when this
+    is None, which is the normal, expected case for most leads."""
     scratch = canvas.Canvas(io.BytesIO(), pagesize=(PAGE_W, MEASURE_PAGE_H))
-    content_bottom_y = _render(scratch, data, MEASURE_PAGE_H)
+    content_bottom_y = _render(scratch, data, MEASURE_PAGE_H, logo_bytes)
 
     used_height = MEASURE_PAGE_H - content_bottom_y
     fitted_height = max(MIN_PAGE_H, used_height + BOTTOM_MARGIN)
 
     c = canvas.Canvas(out_path, pagesize=(PAGE_W, fitted_height))
-    _render(c, data, fitted_height)
+    _render(c, data, fitted_height, logo_bytes)
     c.showPage()
     c.save()
 
