@@ -22,11 +22,16 @@ especially) kill a connection that sits open that long, which shows up in
 the browser as a plain "Failed to fetch" with no useful detail.
 """
 
+import io
 import json
+import re
 import sqlite3
 import time
 import traceback
+import urllib.error
+import urllib.request
 from pathlib import Path
+from urllib.parse import urlparse
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
@@ -34,6 +39,99 @@ from pydantic import BaseModel
 
 from battlecard_pdf import build as build_pdf
 from research import research_and_structure
+
+# ---------------- lead logo lookup (best-effort, never blocks a lead) ----------------
+#
+# Gemini can't return image bytes at all, grounded search gives back text
+# and citations, not attachments, so this is a completely separate lookup
+# from the research pipeline and adds no Gemini/API cost. It uses
+# Clearbit's free, unauthenticated logo API (logo.clearbit.com), keyed off
+# the rep's own pasted input, and only ever when that input is plausibly
+# the lead's own website - not a Google Maps link, not a social profile,
+# not a plain company name. A logo is shown on the card only when this
+# whole path succeeds; anything else (no confident domain, network
+# failure, timeout, a corrupt or too-small or oddly-shaped image) just
+# means no logo, silently, never an error surfaced to the rep and never
+# something that can delay or break a lead's research.
+_LOGO_SKIP_HOSTS = {
+    "google.com", "maps.google.com", "goo.gl", "maps.app.goo.gl",
+    "facebook.com", "instagram.com", "linkedin.com", "twitter.com", "x.com",
+    "youtube.com", "indiamart.com",
+}
+LOGO_FETCH_TIMEOUT_SECONDS = 4
+LOGO_MIN_DIMENSION_PX = 32
+LOGO_MAX_ASPECT_RATIO = 3.0
+LOGO_MAX_DOWNLOAD_BYTES = 2_000_000
+
+
+def _extract_company_domain(input_text: str) -> str | None:
+    """Only returns a domain when the rep's own input was a real website
+    URL for the lead itself - confidence starts here, not with what
+    research later says the company's site might be. A Maps link, a
+    social profile, or a plain company name all return None, which means
+    the logo lookup is skipped entirely for that lead."""
+    text = (input_text or "").strip()
+    if not re.match(r"^https?://", text, re.IGNORECASE):
+        return None
+    try:
+        host = urlparse(text).netloc.lower().split("@")[-1].split(":")[0]
+    except Exception:
+        return None
+    if not host:
+        return None
+    bare = host[4:] if host.startswith("www.") else host
+    if bare in _LOGO_SKIP_HOSTS:
+        return None
+    return bare
+
+
+def fetch_logo_png(input_text: str) -> bytes | None:
+    """Best-effort lead logo lookup. Returns clean, normalized PNG bytes
+    only when confident: a real domain to try, a successful fetch inside
+    a short timeout, and an image that actually looks like a usable logo
+    (real dimensions, a sane aspect ratio) rather than a placeholder or a
+    broken file. Returns None on any failure at any step - a missing logo
+    is a normal, expected outcome for plenty of leads, not an error."""
+    domain = _extract_company_domain(input_text)
+    if not domain:
+        return None
+
+    url = f"https://logo.clearbit.com/{domain}?size=256&format=png"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "pasolite-lead-app/1.0"})
+        with urllib.request.urlopen(req, timeout=LOGO_FETCH_TIMEOUT_SECONDS) as resp:
+            if resp.status != 200:
+                return None
+            raw = resp.read(LOGO_MAX_DOWNLOAD_BYTES + 1)
+        if not raw or len(raw) > LOGO_MAX_DOWNLOAD_BYTES:
+            return None
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError):
+        return None
+    except Exception:
+        return None
+
+    try:
+        from PIL import Image
+    except ImportError:
+        # Pillow not installed - fail safe to no logo rather than guess at
+        # the image's validity with no way to actually check it.
+        return None
+
+    try:
+        img = Image.open(io.BytesIO(raw))
+        img.verify()
+        img = Image.open(io.BytesIO(raw))  # verify() consumes the parser, reopen
+        w, h = img.size
+        if w < LOGO_MIN_DIMENSION_PX or h < LOGO_MIN_DIMENSION_PX:
+            return None
+        if max(w, h) / max(1, min(w, h)) > LOGO_MAX_ASPECT_RATIO:
+            return None
+        img = img.convert("RGBA")
+        out = io.BytesIO()
+        img.save(out, format="PNG")
+        return out.getvalue()
+    except Exception:
+        return None
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "data" / "leads.db"
@@ -88,8 +186,16 @@ def _process_lead(lead_id: int, input_text: str):
         data = research_and_structure(input_text)
         whatsapp_summary = data.pop("whatsapp_summary", "")
 
+        # Best-effort only - never let a logo problem affect the lead
+        # itself. fetch_logo_png already fails safe internally, this outer
+        # guard is just belt and suspenders against something unexpected.
+        try:
+            logo_bytes = fetch_logo_png(input_text)
+        except Exception:
+            logo_bytes = None
+
         pdf_path = PDF_DIR / f"{lead_id}.pdf"
-        build_pdf(data, str(pdf_path))
+        build_pdf(data, str(pdf_path), logo_bytes=logo_bytes)
 
         conn = get_db()
         conn.execute(
