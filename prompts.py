@@ -91,23 +91,36 @@ Cover, in your written findings:
   specify, recommend, or procure lighting decisions at all.
 - Key contacts to meet - the literal people a rep should try to get a \
   meeting with, a different and more specific question than the general \
-  decision-maker read above. Search specifically, by name, for whoever \
-  currently holds, or most recently held, a Procurement Manager/Head of \
-  Procurement, Procurement Executive, Purchase Manager/Purchase \
-  Executive, Materials/Supply Chain Manager, or Senior Architect role (or \
-  a clear equivalent - anyone who actually specifies, recommends, or buys \
-  lighting) at this specific company, not at a similarly-named but \
-  different company. Search the company's own website (leadership, team, \
-  or about pages), LinkedIn, and public business directories. Report a \
-  name only when you find a specific, current, real, credited match for \
-  THIS company - never a same-named person elsewhere, never a guess \
-  dressed up as a finding, and say plainly if someone appears to have \
-  since moved on. Include the LinkedIn URL whenever you find one, and say \
-  which source confirmed the role (the company's own site, LinkedIn, or \
-  both). If a genuine search turns up no one for a given role, say so \
-  plainly ("no named [role] found publicly") rather than inventing a name \
-  or leaving it ambiguous - this becomes the rep's literal call list, so \
-  an honest gap is far better than a wrong name.
+  decision-maker read above, and a different question again from who runs \
+  the company overall. This is deliberately NOT about the founder, \
+  promoter, chairman, CEO, or managing director - that person is already \
+  covered elsewhere on the card as the firm's top-line leader. This is \
+  about the operational people actually making the purchasing or \
+  specification call day to day: architects who specify products on real \
+  projects, and people on the buying/vendor side who deal directly with \
+  lighting manufacturers - Procurement Manager/Head of Procurement, \
+  Procurement Executive, Purchase Manager/Purchase Executive, or \
+  Materials/Supply Chain Manager, plus Senior Architect/Project \
+  Architect/Design Head specifically where their role involves choosing \
+  or approving lighting products, not general creative or brand \
+  leadership. Search specifically, by name, for whoever currently holds, \
+  or most recently held, one of these roles at this specific company, not \
+  at a similarly-named but different company, and never the same person \
+  already identified as the firm's founder/CEO/MD elsewhere in your \
+  findings - if the only lighting-related decision-maker you can find IS \
+  that same top leader, say so plainly rather than repeating their name \
+  here as if it were a separate contact. Search the company's own \
+  website (leadership, team, or about pages), LinkedIn, and public \
+  business directories. Report a name only when you find a specific, \
+  current, real, credited match for THIS company - never a same-named \
+  person elsewhere, never a guess dressed up as a finding, and say \
+  plainly if someone appears to have since moved on. Include the \
+  LinkedIn URL whenever you find one, and say which source confirmed the \
+  role (the company's own site, LinkedIn, or both). If a genuine search \
+  turns up no one for a given role, say so plainly ("no named [role] \
+  found publicly") rather than inventing a name or leaving it ambiguous \
+  - this becomes the rep's literal call list, so an honest gap is far \
+  better than a wrong name.
 - Competitor and vendor signals: what lighting brands, if any, this firm \
   already shows evidence of using, and how confident that evidence is.
 - Peer-price-segment brand relationships specifically: search separately \
@@ -239,15 +252,22 @@ Writing rules, followed exactly:
   optimistic Strong Fit that overstates what the research actually found.
 - Judgment calls (overall_fit, strengths, weaknesses, price_positioning) \
   are plain-language points, never numeric scores.
-- key_contacts_to_meet: the literal people a rep should try to meet - \
-  Procurement Manager/Head of Procurement, Procurement Executive, \
-  Purchase Manager/Purchase Executive, Materials/Supply Chain Manager, \
-  Senior Architect, or a clear equivalent role that specifies, \
-  recommends, or buys lighting. This is separate from key_contact, which \
-  is the single top-line leader shown in the header (founder, principal, \
-  CEO) - key_contacts_to_meet is the operational buy-side call list, not \
-  leadership. Build one entry per role the research findings actually \
-  address; do not invent an entry for a role the findings never touched. \
+- key_contacts_to_meet: the literal operational people a rep should try \
+  to meet - Procurement Manager/Head of Procurement, Procurement \
+  Executive, Purchase Manager/Purchase Executive, Materials/Supply Chain \
+  Manager, or an architect (Senior Architect/Project Architect/Design \
+  Head) specifically where their role involves choosing or approving \
+  lighting products. This is separate from key_contact, which is the \
+  single top-line leader shown in the header (founder, promoter, \
+  chairman, CEO, MD, principal) - key_contacts_to_meet is exclusively the \
+  operational buying/specification call list, never leadership. NEVER \
+  repeat the same person named in key_contact here, even under a \
+  different-sounding title - if the founder/CEO/MD is the only \
+  lighting-related decision-maker the research actually found, that role \
+  counts as not identified in this section rather than restating their \
+  name, since they're already shown elsewhere on the card. Build one \
+  entry per role the research findings actually address; do not invent \
+  an entry for a role the findings never touched. \
   Each entry: designation (the role, in plain title case), name (the \
   person's name ONLY if the research findings actually name one for this \
   specific company - leave this an empty string rather than ever \
