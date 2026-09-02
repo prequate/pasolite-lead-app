@@ -64,23 +64,49 @@ LOGO_MAX_ASPECT_RATIO = 3.0
 LOGO_MAX_DOWNLOAD_BYTES = 2_000_000
 
 
+def _looks_like_bare_domain(text: str) -> bool:
+    """True for a plausible domain pasted without the http(s):// scheme in
+    front - "honestylighting.in" or "www.honestylighting.in/about". Browsers
+    hide the scheme in the address bar, so a rep copying straight from
+    there very often pastes it this way, and that should not silently
+    disable the logo lookup. Deliberately conservative: a plain company
+    name ("Honesty Lighting", "Pragrup") has no dot and/or contains a
+    space, so it never matches this and is correctly skipped, same as
+    before."""
+    if not text or " " in text or "\t" in text:
+        return False
+    if re.match(r"^https?://", text, re.IGNORECASE):
+        return False  # handled by the scheme branch already
+    candidate = text.split("/")[0]
+    return bool(re.match(r"^[a-z0-9-]+(\.[a-z0-9-]+)+$", candidate, re.IGNORECASE))
+
+
 def _extract_company_domain(input_text: str) -> str | None:
     """Only returns a domain when the rep's own input was a real website
-    URL for the lead itself - confidence starts here, not with what
-    research later says the company's site might be. A Maps link, a
-    social profile, or a plain company name all return None, which means
-    the logo lookup is skipped entirely for that lead."""
+    for the lead itself - confidence starts here, not with what research
+    later says the company's site might be. This accepts both a full
+    https://... URL and a bare domain typed or pasted without the scheme
+    (see _looks_like_bare_domain). A Maps link, a social profile, or a
+    plain company name all return None, which means the logo lookup is
+    skipped entirely for that lead."""
     text = (input_text or "").strip()
-    if not re.match(r"^https?://", text, re.IGNORECASE):
+    if not text:
         return None
-    try:
-        host = urlparse(text).netloc.lower().split("@")[-1].split(":")[0]
-    except Exception:
+    if re.match(r"^https?://", text, re.IGNORECASE):
+        try:
+            host = urlparse(text).netloc.lower().split("@")[-1].split(":")[0]
+        except Exception:
+            return None
+    elif _looks_like_bare_domain(text):
+        host = text.split("/")[0].lower()
+    else:
         return None
     if not host:
         return None
     bare = host[4:] if host.startswith("www.") else host
     if bare in _LOGO_SKIP_HOSTS:
+        return None
+    if "." not in bare:
         return None
     return bare
 
@@ -94,20 +120,26 @@ def fetch_logo_png(input_text: str) -> bytes | None:
     is a normal, expected outcome for plenty of leads, not an error."""
     domain = _extract_company_domain(input_text)
     if not domain:
+        print(f"[logo] no confident domain in input, skipping: {input_text!r}")
         return None
+    print(f"[logo] trying {domain}")
 
     url = f"https://logo.clearbit.com/{domain}?size=256&format=png"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "pasolite-lead-app/1.0"})
         with urllib.request.urlopen(req, timeout=LOGO_FETCH_TIMEOUT_SECONDS) as resp:
             if resp.status != 200:
+                print(f"[logo] {domain}: HTTP {resp.status}, no logo")
                 return None
             raw = resp.read(LOGO_MAX_DOWNLOAD_BYTES + 1)
         if not raw or len(raw) > LOGO_MAX_DOWNLOAD_BYTES:
+            print(f"[logo] {domain}: empty or oversized response, no logo")
             return None
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError):
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as e:
+        print(f"[logo] {domain}: fetch failed ({e}), no logo")
         return None
-    except Exception:
+    except Exception as e:
+        print(f"[logo] {domain}: unexpected fetch error ({e}), no logo")
         return None
 
     try:
@@ -115,6 +147,7 @@ def fetch_logo_png(input_text: str) -> bytes | None:
     except ImportError:
         # Pillow not installed - fail safe to no logo rather than guess at
         # the image's validity with no way to actually check it.
+        print(f"[logo] {domain}: Pillow not installed, no logo")
         return None
 
     try:
@@ -123,14 +156,18 @@ def fetch_logo_png(input_text: str) -> bytes | None:
         img = Image.open(io.BytesIO(raw))  # verify() consumes the parser, reopen
         w, h = img.size
         if w < LOGO_MIN_DIMENSION_PX or h < LOGO_MIN_DIMENSION_PX:
+            print(f"[logo] {domain}: image too small ({w}x{h}), no logo")
             return None
         if max(w, h) / max(1, min(w, h)) > LOGO_MAX_ASPECT_RATIO:
+            print(f"[logo] {domain}: aspect ratio too extreme ({w}x{h}), no logo")
             return None
         img = img.convert("RGBA")
         out = io.BytesIO()
         img.save(out, format="PNG")
+        print(f"[logo] {domain}: accepted ({w}x{h})")
         return out.getvalue()
-    except Exception:
+    except Exception as e:
+        print(f"[logo] {domain}: corrupt/unparseable image ({e}), no logo")
         return None
 
 BASE_DIR = Path(__file__).resolve().parent
