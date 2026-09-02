@@ -47,16 +47,26 @@ Cover, in your written findings:
   firm with excellent interior work is not evidence of outdoor lighting \
   relevance on its own. Actively search for, and report separately from \
   general lighting work, anything showing facade lighting, landscape \
-  lighting, street or road lighting, urban or public-realm lighting, \
-  architectural exterior lighting, exterior commercial lighting, \
-  hospitality or resort outdoor lighting, residential township outdoor \
-  lighting, or large-scale infrastructure/exterior lighting. For each \
-  piece of evidence found, say plainly whether it's a completed project, \
-  a recurring project type across their portfolio, or just one occasion. \
-  If a project mentions lighting only in interior terms (coves, ceilings, \
-  gallery walls, interior fixtures), say so explicitly rather than letting \
-  it read as ambiguous outdoor evidence - the distinction matters more \
-  than the overall lighting mention.
+  lighting, bollards or pathway/perimeter lighting, street or road \
+  lighting, urban or public-realm lighting, architectural exterior \
+  lighting, exterior commercial lighting, hospitality or resort outdoor \
+  lighting, residential township outdoor lighting, or large-scale \
+  infrastructure/exterior lighting. For each piece of evidence found, say \
+  plainly whether it's a completed project, a recurring project type \
+  across their portfolio, or just one occasion. If a project mentions \
+  lighting only in interior terms (coves, ceilings, gallery walls, \
+  interior fixtures), say so explicitly rather than letting it read as \
+  ambiguous outdoor evidence - the distinction matters more than the \
+  overall lighting mention.
+- Landscape lighting and bollards specifically - search for these even \
+  when the firm's other outdoor evidence is thin. These two are \
+  Pasolite's own highest-alignment categories [CLIENT-PROVIDED - Pasolite \
+  names landscape lighting and bollards as its strongest product areas], \
+  so any genuine, even single-instance evidence of garden or landscape \
+  lighting, pathway or perimeter lighting, bollard installations, or a \
+  township/campus/resort/public-realm project with grounds that would \
+  plausibly need them is a distinct, real signal on its own - report it \
+  even if it's the only outdoor evidence the firm has.
 - Pipeline and upcoming work that would plausibly require outdoor \
   lighting specifically (a live township, an exterior heritage \
   restoration, a hospitality build with landscaped grounds, a public \
@@ -161,7 +171,15 @@ Writing rules, followed exactly:
         prestigious or luxury buildings, working with well-known \
         developers, having "some exterior work" with no further detail, \
         having lighting experience in general, or having exactly one \
-        outdoor lighting project on record.
+        outdoor lighting project on record. Landscape lighting and \
+        bollards are the one exception to "exactly one project isn't \
+        enough": these two are Pasolite's own highest-alignment \
+        categories [CLIENT-PROVIDED], so a single, genuine, credited \
+        instance of landscape lighting or bollard work (or a live \
+        township/campus/resort/public-realm project whose grounds would \
+        plausibly need them) is on its own enough to satisfy path (a) - \
+        it does not need the "more than one instance" bar that other \
+        outdoor categories (facade, street lighting, and so on) still do.
         (b) Peer-price-segment brand relationship: genuine, credited \
         evidence the firm already works with, specifies, or has \
         procured from K-Lite, Hybec, Ledlum, or Changi - named by \
@@ -216,7 +234,12 @@ Writing rules, followed exactly:
   for an outdoor category. If a category's only support is indoor work \
   (interior coves, ceilings, gallery walls), its priority should reflect \
   that it's an indoor use case, not be inflated because the category name \
-  sounds exterior.
+  sounds exterior. Landscape Lighting and Bollards specifically are \
+  Pasolite's own highest-alignment categories [CLIENT-PROVIDED] - unlike \
+  Facade Lighting, a single genuine project or a plausible live \
+  opportunity (a township, campus, resort, or public-realm project with \
+  grounds) is enough on its own to earn either of these two a High \
+  priority, not just a repeated pattern across the portfolio.
 - lighting_profile: the account's own behavior (where lighting shows up, \
   architecture-integrated vs decorative, what's conspicuously absent), \
   explicitly distinguishing indoor from outdoor evidence rather than \
@@ -235,7 +258,12 @@ Writing rules, followed exactly:
   segment brand relationship (K-Lite, Hybec, Ledlum, Changi) rather than \
   through outdoor lighting evidence, say so explicitly and name the brand \
   - a rep should see plainly why the badge says Strong Fit even without \
-  outdoor project history to point to. weaknesses: 3-4 real risks or \
+  outdoor project history to point to. Likewise, if overall_fit reached \
+  Strong Fit on the strength of a single landscape lighting or bollard \
+  project or opportunity rather than a broader outdoor pattern, say that \
+  plainly and name the specific project - a rep should see why the badge \
+  says Strong Fit even with only one piece of outdoor evidence. \
+  weaknesses: 3-4 real risks or \
   gaps, stated as plainly as the strengths - if the overall_fit is Medium \
   or Weak specifically because outdoor lighting evidence is thin or \
   absent, say that directly here rather than only implying it through \
