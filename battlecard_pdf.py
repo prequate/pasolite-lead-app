@@ -321,6 +321,72 @@ def dot_list(c, items, x, y, col_w, dot_color, max_items, leading=10.2, size=8.6
     return y
 
 
+def key_contacts_section(c, contacts, x, y, right_edge, max_items=8):
+    """Draws the 'Key Contacts to Meet' section - the rep's literal call
+    list (procurement, purchase, materials/supply chain, senior architect,
+    or an equivalent specify/recommend/buy role), separate from the single
+    top-line leader already shown in the header. Every entry here came out
+    of app.py/research.py already screened for "don't invent a name" - all
+    this function does is render whatever it's handed, including entries
+    where no person was found (shown plainly as such, in a quieter grey,
+    rather than skipped or hidden).
+
+    Deliberately compact: one line per contact - name, designation, and an
+    inline LinkedIn link where one exists - no confidence note printed on
+    the card itself (Kartik asked for name/designation/LinkedIn only, at a
+    smaller size, so this section can list more roles in the same space).
+    The note is still collected in the underlying data (research.py/
+    app.py), it's just not drawn here - kept available for anyone checking
+    the tool's own reasoning later, without cluttering the card a rep
+    actually reads."""
+    col_w = right_edge - x
+    name_font, name_size = FONT_B, 8.3
+    link_font, link_size = FONT, 7.4
+    for contact in contacts[:max_items]:
+        designation = (contact.get("designation") or "").strip()
+        name = (contact.get("name") or "").strip()
+        linkedin = (contact.get("linkedin_url") or "").strip()
+        if not designation and not name:
+            continue
+
+        c.setFillColorRGB(*ACCENT)
+        c.setFont(FONT_B, 8)
+        c.drawString(x, y, "•")
+        text_x = x + 8
+
+        if name:
+            headline = f"{name} — {designation}" if designation else name
+        else:
+            headline = f"{designation}: not identified" if designation else "Not identified"
+
+        link_label = "LinkedIn"
+        link_w = stringWidth(link_label, link_font, link_size) if linkedin else 0
+        link_gap = 8 if linkedin else 0
+        headline_max_w = col_w - 8 - (link_w + link_gap)
+
+        c.setFont(name_font, name_size)
+        c.setFillColorRGB(*(INK if name else LOW))
+        headline = clip_text(headline, name_font, name_size, headline_max_w)
+        c.drawString(text_x, y, headline)
+
+        if linkedin:
+            link_x = text_x + stringWidth(headline, name_font, name_size) + link_gap
+            c.setFont(link_font, link_size)
+            c.setFillColorRGB(*NAVY)
+            c.drawString(link_x, y, link_label)
+            # A thin underline is the plainest possible "this is a link"
+            # signal, since the label itself is just the word "LinkedIn" -
+            # an earlier version used an arrow glyph (↗) here, but
+            # reportlab's built-in Helvetica can't render it and it fell
+            # back to a broken box glyph on the actual PDF.
+            hline(c, link_x, link_x + link_w, y - 1, color=NAVY, width=0.5)
+            c.linkURL(linkedin, (link_x, y - 1.5, link_x + link_w, y + 6.5),
+                      relative=0, thickness=0)
+
+        y -= 4.8 * mm
+    return y
+
+
 def _render(c, data, page_h, logo_bytes=None):
     """Draws the full card onto canvas `c`, sized to `page_h`, and returns
     the y-coordinate reached right after the last content section (before
@@ -499,6 +565,18 @@ def _render(c, data, page_h, logo_bytes=None):
             ry = draw_wrapped(c, rng, right_x, ry, FONT, 8, col_w, 9.8,
                                color=SUBINK, max_lines=2)
             ry -= 4 * mm
+
+    # ---------------- RIGHT (cont): key contacts to meet ----------------
+    # Sits directly under Project Scale & Positioning, in the same right
+    # column, rather than as its own full-width section - Kartik asked for
+    # it placed here specifically, with the rest of the card's two-column
+    # structure left untouched.
+    contacts = data.get("key_contacts_to_meet", [])
+    if contacts:
+        section_label(c, "Key contacts to meet", right_x, ry, right_edge=right_x + col_w)
+        ry -= 9 * mm
+        ry = key_contacts_section(c, contacts, right_x, ry, right_x + col_w)
+        ry -= 2 * mm
 
     y = min(ly, ry) - 3 * mm
 
